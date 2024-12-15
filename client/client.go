@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	"log"
 	"time"
 
-	"go.uber.org/zap"
+	"k8s.io/klog/v2"
 	"google.golang.org/grpc"
 	pb "github.com/BetterGR/course-microservice/course_protobuf"
 )
@@ -16,26 +15,24 @@ const (
 )
 
 func main() {
-	logger, err := zap.NewProduction()
-	if err != nil {
-		log.Fatalf("Failed to initialize logger: %v", err)
-	}
-	defer logger.Sync()
+	// Initialize klog
+	klog.InitFlags(nil)
+	defer klog.Flush()
 
 	conn, err := grpc.Dial(serverAddress, grpc.WithInsecure())
 	if err != nil {
-		logger.Fatal("Failed to connect to server", zap.Error(err))
+		klog.Fatalf("Failed to connect to server: %v", err)
 	}
 	defer conn.Close()
 
 	client := pb.NewCourseServiceClient(conn)
 
 	// Call example RPC methods
-	createCourse(client, logger)
-	getCourse(client, logger)
+	createCourse(client)
+	getCourse(client)
 }
 
-func createCourse(client pb.CourseServiceClient, logger *zap.Logger) {
+func createCourse(client pb.CourseServiceClient) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
@@ -47,21 +44,21 @@ func createCourse(client pb.CourseServiceClient, logger *zap.Logger) {
 
 	resp, err := client.CreateCourse(ctx, req)
 	if err != nil {
-		logger.Error("Failed to create course", zap.Error(err))
+		klog.Errorf("Failed to create course: %v", err)
 		return
 	}
-	logger.Info("Created course", zap.String("courseId", resp.CourseId))
+	klog.Infof("Created course: courseId=%s", resp.CourseId)
 }
 
-func getCourse(client pb.CourseServiceClient, logger *zap.Logger) {
+func getCourse(client pb.CourseServiceClient) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	req := &pb.GetCourseRequest{CourseId: "C1"}
 	resp, err := client.GetCourse(ctx, req)
 	if err != nil {
-		logger.Error("Failed to get course", zap.Error(err))
+		klog.Errorf("Failed to get course: %v", err)
 		return
 	}
-	logger.Info("Retrieved course", zap.String("name", resp.Name), zap.String("semester", resp.Semester))
+	klog.Infof("Retrieved course: name=%s, semester=%s", resp.Name, resp.Semester)
 }

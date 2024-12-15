@@ -6,7 +6,7 @@ import (
 	"log"
 	"net"
 
-	"go.uber.org/zap"
+	"k8s.io/klog/v2"
 	"google.golang.org/grpc"
 	pb "github.com/BetterGR/course-microservice/course_protobuf"
 )
@@ -19,12 +19,6 @@ const (
 // courseServer implements the CourseService
 type courseServer struct {
 	pb.UnimplementedCourseServiceServer
-	logger *zap.Logger // Structured logger for better debugging
-}
-
-// NewCourseServer creates a new courseServer with logging
-func NewCourseServer(logger *zap.Logger) *courseServer {
-	return &courseServer{logger: logger}
 }
 
 // In-memory data storage for demonstration
@@ -32,7 +26,7 @@ var courses = map[string]*pb.GetCourseResponse{}
 
 // GetCourse retrieves a course by its ID
 func (s *courseServer) GetCourse(ctx context.Context, req *pb.GetCourseRequest) (*pb.GetCourseResponse, error) {
-	s.logger.Info("Received GetCourse request", zap.String("courseId", req.CourseId))
+	klog.Infof("Received GetCourse request: courseId=%s", req.CourseId)
 	course, exists := courses[req.CourseId]
 	if !exists {
 		return nil, fmt.Errorf("course not found: %s", req.CourseId)
@@ -51,32 +45,27 @@ func (s *courseServer) CreateCourse(ctx context.Context, req *pb.CreateCourseReq
 		StaffIds:    []string{},
 		StudentIds:  []string{},
 	}
-	s.logger.Info("Created new course", zap.String("courseId", courseID), zap.String("name", req.Name))
+	klog.Infof("Created new course: courseId=%s, name=%s", courseID, req.Name)
 	return &pb.CreateCourseResponse{CourseId: courseID}, nil
 }
 
-// Other RPC implementations go here...
-// AddStudentToCourse, RemoveStudentFromCourse, ListStudents, etc.
-
+// main function
 func main() {
-	// Initialize logger
-	logger, err := zap.NewProduction()
-	if err != nil {
-		log.Fatalf("Failed to initialize logger: %v", err)
-	}
-	defer logger.Sync()
+	// Initialize klog
+	klog.InitFlags(nil)
+	defer klog.Flush()
 
 	// Start server
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
-		logger.Fatal("Failed to listen", zap.Error(err))
+		klog.Fatalf("Failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
-	pb.RegisterCourseServiceServer(grpcServer, NewCourseServer(logger))
+	pb.RegisterCourseServiceServer(grpcServer, &courseServer{})
 
-	logger.Info("CourseService is running", zap.String("address", address))
+	klog.Infof("CourseService is running on address: %s", address)
 	if err := grpcServer.Serve(listener); err != nil {
-		logger.Fatal("Failed to serve", zap.Error(err))
+		klog.Fatalf("Failed to serve: %v", err)
 	}
 }
