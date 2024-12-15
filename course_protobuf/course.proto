@@ -1,0 +1,153 @@
+syntax = "proto3";
+
+package course;
+
+option go_package = "github.com/BetterGR/course-microservice/course_protobuf";
+
+service CourseService
+{
+    rpc GetCourse(GetCourseRequest) returns (GetCourseResponse);
+    rpc CreateCourse(CreateCourseRequest) returns (CreateCourseResponse);
+    rpc UpdateCourse(UpdateCourseRequest) returns (UpdateCourseResponse);
+    rpc AddStudentToCourse(AddStudentRequest) returns (AddStudentResponse);
+    rpc RemoveStudentFromCourse(RemoveStudentRequest) returns (RemoveStudentResponse);
+    rpc AddStaffToCourse(AddStaffRequest) returns (AddStaffResponse);
+    rpc RemoveStaffFromCourse(RemoveStaffRequest) returns (RemoveStaffResponse);
+    rpc DeleteCourse(DeleteCourseRequest) returns (DeleteCourseResponse);
+    rpc ListStudents(ListStudentsRequest) returns (ListStudentsResponse);
+    rpc ListStaff(ListStaffRequest) returns (ListStaffResponse);
+    rpc AddHomework(AddHomeworkRequest) returns (AddHomeworkResponse);
+    rpc RemoveHomework(RemoveHomeworkRequest) returns (RemoveHomeworkResponse);
+
+}
+
+message GetCourseRequest
+{
+    string course_id = 1;  //unique ID of the course
+}
+message GetCourseResponse
+{
+    string course_id = 1;
+    string name = 2;
+    string description = 3; //A brief description of the course, explaining what it covers.
+    string semester = 4; //Indicates the semester when the course is offered.
+    repeated string staff_ids = 5; //A list of IDs representing the staff of this course.
+    repeated string student_ids = 6; //A list of IDs representing the enrolled students in the course.
+}
+
+message CreateCourseRequest 
+{
+  string name = 1; 
+  string description = 2;
+  string semester = 3;
+}
+message CreateCourseResponse 
+{
+  string course_id = 1; //to ask: should the id be in the response or request?
+}
+
+message UpdateCourseRequest 
+{
+  string course_id = 1; //Identifies the course to be updated
+  string name = 2; //new name
+  string description = 3; ////new description
+  string semester = 4; //modify semester value
+}
+message UpdateCourseResponse 
+{
+  bool success = 1;
+}
+
+message AddStudentRequest 
+{
+  string course_id = 1;
+  string student_id = 2;
+}
+message AddStudentResponse 
+{
+  bool success = 1;
+}
+
+message RemoveStudentRequest 
+{
+  string course_id = 1;
+  string student_id = 2;
+}
+message RemoveStudentResponse 
+{
+  bool success = 1;
+}
+
+message AddStaffRequest 
+{
+  string course_id = 1;
+  string staff_id = 2;
+}
+message AddStaffResponse 
+{
+  bool success = 1;
+}
+
+message RemoveStaffRequest 
+{
+  string course_id = 1;
+  string staff_id = 2;
+}
+message RemoveStaffResponse 
+{
+  bool success = 1;
+}
+
+
+message DeleteCourseRequest
+{
+  string course_id = 1; 
+}
+message DeleteCourseResponse
+{
+  bool success = 1; 
+}
+
+message ListStudentsRequest 
+{
+  string course_id = 1;
+}
+
+message ListStudentsResponse 
+{
+  repeated string student_ids = 1;
+}
+
+message ListStaffRequest 
+{
+  string course_id = 1;
+}
+
+message ListStaffResponse 
+{
+  repeated string staff_ids = 1;
+}
+
+message AddHomeworkRequest 
+{
+    string course_id = 1; // The ID of the course to which the homework is added.
+    string homework_id = 2; // Unique ID for the homework.
+    string title = 3; // The title of the homework.
+    string description = 4; // A brief description of the homework.
+    string due_date = 5; // The due date for the homework in ISO 8601 format.
+}
+message AddHomeworkResponse 
+{
+    bool success = 1; // Indicates if the homework was successfully added.
+}
+
+message RemoveHomeworkRequest 
+{
+    string course_id = 1; // The ID of the course.
+    string homework_id = 2; // The ID of the homework to be removed.
+}
+
+message RemoveHomeworkResponse 
+{
+    bool success = 1; // Indicates if the homework was successfully removed.
+}

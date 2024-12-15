@@ -1,6 +1,6 @@
 
 # Directories
-PROTO_DIR = proto
+PROTO_DIR = course_protobuf
 OUTPUT_DIR = ./course_protobuf
 
 # Proto file
