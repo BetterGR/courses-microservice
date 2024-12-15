@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"log"
 	"net"
 
 	"k8s.io/klog/v2"
@@ -26,7 +26,9 @@ var courses = map[string]*pb.GetCourseResponse{}
 
 // GetCourse retrieves a course by its ID.
 func (s *courseServer) GetCourse(ctx context.Context, req *pb.GetCourseRequest) (*pb.GetCourseResponse, error) {
-	klog.Infof("Received GetCourse request: courseId=%s", req.CourseId)
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received GetCourse request", "courseId", req.CourseId)
+
 	course, exists := courses[req.CourseId]
 	if !exists {
 		return nil, fmt.Errorf("course not found: %s", req.CourseId)
@@ -36,6 +38,7 @@ func (s *courseServer) GetCourse(ctx context.Context, req *pb.GetCourseRequest) 
 
 // CreateCourse creates a new course.
 func (s *courseServer) CreateCourse(ctx context.Context, req *pb.CreateCourseRequest) (*pb.CreateCourseResponse, error) {
+	logger := klog.FromContext(ctx)
 	courseID := fmt.Sprintf("C%d", len(courses)+1)
 	courses[courseID] = &pb.GetCourseResponse{
 		CourseId:    courseID,
@@ -45,25 +48,28 @@ func (s *courseServer) CreateCourse(ctx context.Context, req *pb.CreateCourseReq
 		StaffIds:    []string{},
 		StudentIds:  []string{},
 	}
-	klog.Infof("Created new course: courseId=%s, name=%s", courseID, req.Name)
+	logger.V(5).Info("Created new course", "courseId", courseID, "name", req.Name)
 	return &pb.CreateCourseResponse{CourseId: courseID}, nil
 }
 
 // main initializes and starts the CourseService server.
 func main() {
+	// Initialize klog.
 	klog.InitFlags(nil)
+	flag.Parse()
 	defer klog.Flush()
 
+	// Start the server.
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
-		klog.Fatalf("Failed to listen: %v", err)
+		klog.ErrorS(err, "Failed to listen")
 	}
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterCourseServiceServer(grpcServer, &courseServer{})
 
-	klog.Infof("CourseService is running on address: %s", address)
+	klog.InfoS("CourseService is running", "address", address)
 	if err := grpcServer.Serve(listener); err != nil {
-		klog.Fatalf("Failed to serve: %v", err)
+		klog.ErrorS(err, "Failed to serve")
 	}
 }
