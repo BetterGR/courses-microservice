@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	// serverAddress defines the address of the gRPC server
+	// serverAddress defines the address of the gRPC server.
 	serverAddress = "localhost:50052"
 )
 
+// main initializes the gRPC client and calls example RPC methods.
 func main() {
-	// Initialize klog
-	klog.InitFlags(nil)
+	klog.InitFlags(nil) // Initialize klog.
 	defer klog.Flush()
 
 	conn, err := grpc.Dial(serverAddress, grpc.WithInsecure())
@@ -27,11 +27,11 @@ func main() {
 
 	client := pb.NewCourseServiceClient(conn)
 
-	// Call example RPC methods
-	createCourse(client)
-	getCourse(client)
+	createCourse(client) // Call createCourse to create a course.
+	getCourse(client)    // Call getCourse to retrieve a course.
 }
 
+// createCourse sends a request to create a new course.
 func createCourse(client pb.CourseServiceClient) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -50,6 +50,7 @@ func createCourse(client pb.CourseServiceClient) {
 	klog.Infof("Created course: courseId=%s", resp.CourseId)
 }
 
+// getCourse sends a request to retrieve a course by its ID.
 func getCourse(client pb.CourseServiceClient) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
