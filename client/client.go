@@ -37,9 +37,9 @@ func createCourse(client pb.CourseServiceClient) {
 	defer cancel()
 
 	req := &pb.CreateCourseRequest{
-		Name:        "Algorithms 1",
+		Name:        "Algorithms-1",
 		Description: "Learn about algorithms",
-		Semester:    "Spring 2025",
+		Semester:    "Spring-2025",
 	}
 
 	resp, err := client.CreateCourse(ctx, req)
