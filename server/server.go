@@ -12,19 +12,19 @@ import (
 )
 
 const (
-	// address defines the server's listening address
+	// address defines the server's listening address.
 	address = "localhost:50052"
 )
 
-// courseServer implements the CourseService
+// courseServer implements the CourseService.
 type courseServer struct {
 	pb.UnimplementedCourseServiceServer
 }
 
-// In-memory data storage for demonstration
+// courses is an in-memory data storage for demonstration.
 var courses = map[string]*pb.GetCourseResponse{}
 
-// GetCourse retrieves a course by its ID
+// GetCourse retrieves a course by its ID.
 func (s *courseServer) GetCourse(ctx context.Context, req *pb.GetCourseRequest) (*pb.GetCourseResponse, error) {
 	klog.Infof("Received GetCourse request: courseId=%s", req.CourseId)
 	course, exists := courses[req.CourseId]
@@ -34,7 +34,7 @@ func (s *courseServer) GetCourse(ctx context.Context, req *pb.GetCourseRequest) 
 	return course, nil
 }
 
-// CreateCourse creates a new course
+// CreateCourse creates a new course.
 func (s *courseServer) CreateCourse(ctx context.Context, req *pb.CreateCourseRequest) (*pb.CreateCourseResponse, error) {
 	courseID := fmt.Sprintf("C%d", len(courses)+1)
 	courses[courseID] = &pb.GetCourseResponse{
@@ -49,13 +49,11 @@ func (s *courseServer) CreateCourse(ctx context.Context, req *pb.CreateCourseReq
 	return &pb.CreateCourseResponse{CourseId: courseID}, nil
 }
 
-// main function
+// main initializes and starts the CourseService server.
 func main() {
-	// Initialize klog
 	klog.InitFlags(nil)
 	defer klog.Flush()
 
-	// Start server
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
 		klog.Fatalf("Failed to listen: %v", err)
