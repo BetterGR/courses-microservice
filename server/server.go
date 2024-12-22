@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net"
 
-	"k8s.io/klog/v2"
-	"google.golang.org/grpc"
 	pb "github.com/BetterGR/course-microservice/course_protobuf"
+	"google.golang.org/grpc"
+	"k8s.io/klog/v2"
 )
 
 const (

@@ -1,0 +1,271 @@
+syntax = "proto3";
+package course;
+
+option go_package = "github.com/BetterGR/course-microservice/course_protobuf";
+
+// CourseService provides gRPC methods for managing courses.
+service CourseService
+{
+    // Retrieves details of a course by its unique ID.
+    rpc GetCourse(GetCourseRequest) returns (GetCourseResponse);
+
+    // Creates a new course with the given details.
+    rpc CreateCourse(CreateCourseRequest) returns (CreateCourseResponse);
+
+    // Updates the details of an existing course by its unique ID.
+    rpc UpdateCourse(UpdateCourseRequest) returns (UpdateCourseResponse);
+
+    // Adds a student to a course using their unique student ID.
+    rpc AddStudentToCourse(AddStudentRequest) returns (AddStudentResponse);
+
+    // Removes a student from a course using their unique student ID.
+    rpc RemoveStudentFromCourse(RemoveStudentRequest) returns (RemoveStudentResponse);
+
+    // Adds a staff member to a course using their unique staff ID.
+    rpc AddStaffToCourse(AddStaffRequest) returns (AddStaffResponse);
+
+    // Removes a staff member from a course using their unique staff ID.
+    rpc RemoveStaffFromCourse(RemoveStaffRequest) returns (RemoveStaffResponse);
+
+    // Deletes a course by its unique ID.
+    rpc DeleteCourse(DeleteCourseRequest) returns (DeleteCourseResponse);
+
+    // Lists all students enrolled in a course.
+    rpc ListStudents(ListStudentsRequest) returns (ListStudentsResponse);
+
+    // Lists all staff members assigned to a course.
+    rpc ListStaff(ListStaffRequest) returns (ListStaffResponse);
+
+    // Adds a new homework assignment to a course.
+    rpc AddHomework(AddHomeworkRequest) returns (AddHomeworkResponse);
+
+    // Removes a homework assignment from a course by its unique ID.
+    rpc RemoveHomework(RemoveHomeworkRequest) returns (RemoveHomeworkResponse);
+}
+
+// Request to retrieve a course by its unique ID.
+message GetCourseRequest
+{
+    // Course ID.
+    string course_id = 1;
+}
+
+// Response containing details of a course.
+message GetCourseResponse
+{
+    // Course ID.
+    string course_id = 1;
+
+    // Course name.
+    string name = 2;
+
+    // Course description.
+    string description = 3;
+
+    // Course semester.
+    string semester = 4;
+
+    // Staff IDs associated with the course.
+    repeated string staff_ids = 5;
+
+
+    // Student IDs enrolled in the course.
+    repeated string student_ids = 6;
+
+}
+
+// Request to create a new course.
+message CreateCourseRequest 
+{
+    // Course name.
+    string name = 1;
+
+    // Course description.
+    string description = 2;
+
+    // Course semester.
+    string semester = 3;
+}
+
+// Response containing the unique ID of the created course.
+message CreateCourseResponse 
+{
+    // Course ID.
+    string course_id = 1;
+}
+
+// Request to update an existing course.
+message UpdateCourseRequest 
+{
+    // Course ID.
+    string course_id = 1;
+
+    // New course name.
+    string name = 2;
+
+    // New course description.
+    string description = 3;
+
+    // Updated semester.
+    string semester = 4;
+}
+
+// Response indicating if the course update was successful.
+message UpdateCourseResponse 
+{
+    // Update success status.
+    bool success = 1;
+}
+
+// Request to add a student to a course.
+message AddStudentRequest 
+{
+    // Course ID.
+    string course_id = 1;
+
+    // Student ID.
+    string student_id = 2;
+}
+
+// Response indicating if the student was successfully added.
+message AddStudentResponse 
+{
+    // Add success status.
+    bool success = 1;
+}
+
+// Request to remove a student from a course.
+message RemoveStudentRequest 
+{
+    // Course ID.
+    string course_id = 1;
+
+    // Student ID.
+    string student_id = 2;
+}
+
+// Response indicating if the student was successfully removed.
+message RemoveStudentResponse 
+{
+    // Remove success status.
+    bool success = 1;
+}
+
+// Request to add a staff member to a course.
+message AddStaffRequest 
+{
+    // Course ID.
+    string course_id = 1;
+
+    // Staff ID.
+    string staff_id = 2;
+}
+
+// Response indicating if the staff member was successfully added.
+message AddStaffResponse 
+{
+    // Add success status.
+    bool success = 1;
+}
+
+// Request to remove a staff member from a course.
+message RemoveStaffRequest 
+{
+    // Course ID.
+    string course_id = 1;
+
+    // Staff ID.
+    string staff_id = 2;
+}
+
+// Response indicating if the staff member was successfully removed.
+message RemoveStaffResponse 
+{
+    // Remove success status.
+    bool success = 1;
+}
+
+// Request to delete a course by its unique ID.
+message DeleteCourseRequest
+{
+    // Course ID.
+    string course_id = 1;
+}
+
+// Response indicating if the course was successfully deleted.
+message DeleteCourseResponse
+{
+    // Delete success status.
+    bool success = 1;
+}
+
+// Request to list all students in a course.
+message ListStudentsRequest 
+{
+    // Course ID.
+    string course_id = 1;
+}
+
+// Response containing a list of student IDs.
+message ListStudentsResponse 
+{
+    // Student IDs.
+    repeated string student_ids = 1;
+}
+
+// Request to list all staff members in a course.
+message ListStaffRequest 
+{
+    // Course ID.
+    string course_id = 1;
+}
+
+// Response containing a list of staff IDs.
+message ListStaffResponse 
+{
+    // Staff IDs.
+    repeated string staff_ids = 1;
+}
+
+// Request to add a new homework assignment to a course.
+message AddHomeworkRequest 
+{
+    // Course ID.
+    string course_id = 1;
+
+    // Homework ID.
+    string homework_id = 2;
+
+    // Homework title.
+    string title = 3;
+
+    // Homework description.
+    string description = 4;
+
+    // Due date in ISO 8601 format.
+    string due_date = 5;
+}
+
+// Response indicating if the homework was successfully added.
+message AddHomeworkResponse 
+{
+    // Add success status.
+    bool success = 1;
+}
+
+// Request to remove a homework assignment from a course.
+message RemoveHomeworkRequest 
+{
+    // Course ID.
+    string course_id = 1;
+
+    // Homework ID.
+    string homework_id = 2;
+}
+
+// Response indicating if the homework was successfully removed.
+message RemoveHomeworkResponse 
+{
+    // Remove success status.
+    bool success = 1;
+}
