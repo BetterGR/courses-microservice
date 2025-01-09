@@ -1,4 +1,4 @@
-module github.com/BetterGR/students-microservice
+module github.com/BetterGR/course-microservice
 
 go 1.23.3
 
