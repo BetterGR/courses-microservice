@@ -3,7 +3,6 @@ module github.com/BetterGR/course-microservice
 go 1.23.3
 
 require (
-	github.com/BetterGR/course-microservice v0.0.0-20241215154955-c7399e8b9356
 	google.golang.org/grpc v1.69.0
 	google.golang.org/protobuf v1.35.2
 	k8s.io/klog/v2 v2.130.1
