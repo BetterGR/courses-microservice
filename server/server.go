@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net"
 
-	pb "github.com/BetterGR/course-microservice/course_protobuf"
+	pb "github.com/BetterGR/course-microservice/protos"
 	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 )
