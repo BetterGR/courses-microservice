@@ -7,8 +7,7 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/BetterGR/course-microservice/protos"
-	// ms "github.com/TekClinic/MicroService-Lib"
+	pb "github.com/BetterGR/course-microservice/course_protobuf"
 	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 )

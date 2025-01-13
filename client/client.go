@@ -7,6 +7,7 @@ import (
 	"time"
 
 	pb "github.com/BetterGR/course-microservice/protos"
+	pb "github.com/BetterGR/course-microservice/protos"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
