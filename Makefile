@@ -13,7 +13,7 @@ DOCKERFILE ?= Dockerfile
 DOCKER_REGISTRY ?= ghcr.io/BetterGR
 
 # Default target
-all: proto gomod fmt vet lint
+all: proto gomod fmt vet lint build
 
 # Ensure tools are installed
 ensure-gofumpt:
@@ -92,16 +92,16 @@ lint: ensure-golangci-lint fmt
 build: proto fmt vet lint
 	@echo [BUILD] Building server binary...
 ifeq ($(OS),Windows_NT)
-	@go build -o server\server.exe ./server/server.go
+	@go build -o server\server.exe ./server/server.go ./server/db.go
 else
-	@go build -o server/server ./server/server.go
+	@go build -o server/server ./server/server.go ./server/db.go
 endif
 	@echo [BUILD] Server binary built.
 
 # Run the server
 run: proto fmt vet lint
 	@echo [RUN] Starting server...
-	@go run ./server/server.go $(ARGS)
+	@go run ./server/server.go ./server/db.go $(ARGS)
 
 # Build Docker image
 docker-build: proto fmt vet lint build

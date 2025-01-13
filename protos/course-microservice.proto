@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 package course;
 
 option go_package = "github.com/BetterGR/course-microservice/course_protobuf";
@@ -48,6 +49,9 @@ message GetCourseRequest
 {
     // Course ID.
     string course_id = 1;
+
+    // Authentication token.
+    string token = 2;
 }
 
 // Response containing details of a course.
@@ -68,14 +72,12 @@ message GetCourseResponse
     // Staff IDs associated with the course.
     repeated string staff_ids = 5;
 
-
     // Student IDs enrolled in the course.
     repeated string student_ids = 6;
-
 }
 
 // Request to create a new course.
-message CreateCourseRequest 
+message CreateCourseRequest
 {
     // Course name.
     string name = 1;
@@ -85,17 +87,20 @@ message CreateCourseRequest
 
     // Course semester.
     string semester = 3;
+
+    // Authentication token.
+    string token = 4;
 }
 
 // Response containing the unique ID of the created course.
-message CreateCourseResponse 
+message CreateCourseResponse
 {
     // Course ID.
     string course_id = 1;
 }
 
 // Request to update an existing course.
-message UpdateCourseRequest 
+message UpdateCourseRequest
 {
     // Course ID.
     string course_id = 1;
@@ -108,78 +113,93 @@ message UpdateCourseRequest
 
     // Updated semester.
     string semester = 4;
+
+    // Authentication token.
+    string token = 5;
 }
 
 // Response indicating if the course update was successful.
-message UpdateCourseResponse 
+message UpdateCourseResponse
 {
     // Update success status.
     bool success = 1;
 }
 
 // Request to add a student to a course.
-message AddStudentRequest 
+message AddStudentRequest
 {
     // Course ID.
     string course_id = 1;
 
     // Student ID.
     string student_id = 2;
+
+    // Authentication token.
+    string token = 3;
 }
 
 // Response indicating if the student was successfully added.
-message AddStudentResponse 
+message AddStudentResponse
 {
     // Add success status.
     bool success = 1;
 }
 
 // Request to remove a student from a course.
-message RemoveStudentRequest 
+message RemoveStudentRequest
 {
     // Course ID.
     string course_id = 1;
 
     // Student ID.
     string student_id = 2;
+
+    // Authentication token.
+    string token = 3;
 }
 
 // Response indicating if the student was successfully removed.
-message RemoveStudentResponse 
+message RemoveStudentResponse
 {
     // Remove success status.
     bool success = 1;
 }
 
 // Request to add a staff member to a course.
-message AddStaffRequest 
+message AddStaffRequest
 {
     // Course ID.
     string course_id = 1;
 
     // Staff ID.
     string staff_id = 2;
+
+    // Authentication token.
+    string token = 3;
 }
 
 // Response indicating if the staff member was successfully added.
-message AddStaffResponse 
+message AddStaffResponse
 {
     // Add success status.
     bool success = 1;
 }
 
 // Request to remove a staff member from a course.
-message RemoveStaffRequest 
+message RemoveStaffRequest
 {
     // Course ID.
     string course_id = 1;
 
     // Staff ID.
     string staff_id = 2;
+
+    // Authentication token.
+    string token = 3;
 }
 
 // Response indicating if the staff member was successfully removed.
-message RemoveStaffResponse 
+message RemoveStaffResponse
 {
     // Remove success status.
     bool success = 1;
@@ -190,6 +210,9 @@ message DeleteCourseRequest
 {
     // Course ID.
     string course_id = 1;
+
+    // Authentication token.
+    string token = 2;
 }
 
 // Response indicating if the course was successfully deleted.
@@ -200,35 +223,41 @@ message DeleteCourseResponse
 }
 
 // Request to list all students in a course.
-message ListStudentsRequest 
+message ListStudentsRequest
 {
     // Course ID.
     string course_id = 1;
+
+    // Authentication token.
+    string token = 2;
 }
 
 // Response containing a list of student IDs.
-message ListStudentsResponse 
+message ListStudentsResponse
 {
     // Student IDs.
     repeated string student_ids = 1;
 }
 
 // Request to list all staff members in a course.
-message ListStaffRequest 
+message ListStaffRequest
 {
     // Course ID.
     string course_id = 1;
+
+    // Authentication token.
+    string token = 2;
 }
 
 // Response containing a list of staff IDs.
-message ListStaffResponse 
+message ListStaffResponse
 {
     // Staff IDs.
     repeated string staff_ids = 1;
 }
 
 // Request to add a new homework assignment to a course.
-message AddHomeworkRequest 
+message AddHomeworkRequest
 {
     // Course ID.
     string course_id = 1;
@@ -244,27 +273,33 @@ message AddHomeworkRequest
 
     // Due date in ISO 8601 format.
     string due_date = 5;
+
+    // Authentication token.
+    string token = 6;
 }
 
 // Response indicating if the homework was successfully added.
-message AddHomeworkResponse 
+message AddHomeworkResponse
 {
     // Add success status.
     bool success = 1;
 }
 
 // Request to remove a homework assignment from a course.
-message RemoveHomeworkRequest 
+message RemoveHomeworkRequest
 {
     // Course ID.
     string course_id = 1;
 
     // Homework ID.
     string homework_id = 2;
+
+    // Authentication token.
+    string token = 3;
 }
 
 // Response indicating if the homework was successfully removed.
-message RemoveHomeworkResponse 
+message RemoveHomeworkResponse
 {
     // Remove success status.
     bool success = 1;
