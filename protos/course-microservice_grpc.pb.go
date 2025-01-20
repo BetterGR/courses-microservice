@@ -31,6 +31,9 @@ const (
 	CourseService_ListStaff_FullMethodName               = "/course.CourseService/ListStaff"
 	CourseService_AddHomework_FullMethodName             = "/course.CourseService/AddHomework"
 	CourseService_RemoveHomework_FullMethodName          = "/course.CourseService/RemoveHomework"
+	CourseService_AddAnnouncement_FullMethodName         = "/course.CourseService/AddAnnouncement"
+	CourseService_ListAnnouncements_FullMethodName       = "/course.CourseService/ListAnnouncements"
+	CourseService_RemoveAnnouncement_FullMethodName      = "/course.CourseService/RemoveAnnouncement"
 )
 
 // CourseServiceClient is the client API for CourseService service.
@@ -63,6 +66,12 @@ type CourseServiceClient interface {
 	AddHomework(ctx context.Context, in *AddHomeworkRequest, opts ...grpc.CallOption) (*AddHomeworkResponse, error)
 	// Removes a homework assignment from a course by its unique ID.
 	RemoveHomework(ctx context.Context, in *RemoveHomeworkRequest, opts ...grpc.CallOption) (*RemoveHomeworkResponse, error)
+	// Add Announcment to the course.
+	AddAnnouncement(ctx context.Context, in *AddAnnouncementRequest, opts ...grpc.CallOption) (*AddAnnouncementResponse, error)
+	// list all existed announcments.
+	ListAnnouncements(ctx context.Context, in *ListAnnouncementsRequest, opts ...grpc.CallOption) (*ListAnnouncementsResponse, error)
+	// remove an existing announcement
+	RemoveAnnouncement(ctx context.Context, in *RemoveAnnouncementRequest, opts ...grpc.CallOption) (*RemoveAnnouncementResponse, error)
 }
 
 type courseServiceClient struct {
@@ -193,6 +202,36 @@ func (c *courseServiceClient) RemoveHomework(ctx context.Context, in *RemoveHome
 	return out, nil
 }
 
+func (c *courseServiceClient) AddAnnouncement(ctx context.Context, in *AddAnnouncementRequest, opts ...grpc.CallOption) (*AddAnnouncementResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AddAnnouncementResponse)
+	err := c.cc.Invoke(ctx, CourseService_AddAnnouncement_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *courseServiceClient) ListAnnouncements(ctx context.Context, in *ListAnnouncementsRequest, opts ...grpc.CallOption) (*ListAnnouncementsResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListAnnouncementsResponse)
+	err := c.cc.Invoke(ctx, CourseService_ListAnnouncements_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *courseServiceClient) RemoveAnnouncement(ctx context.Context, in *RemoveAnnouncementRequest, opts ...grpc.CallOption) (*RemoveAnnouncementResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RemoveAnnouncementResponse)
+	err := c.cc.Invoke(ctx, CourseService_RemoveAnnouncement_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CourseServiceServer is the server API for CourseService service.
 // All implementations must embed UnimplementedCourseServiceServer
 // for forward compatibility.
@@ -223,6 +262,12 @@ type CourseServiceServer interface {
 	AddHomework(context.Context, *AddHomeworkRequest) (*AddHomeworkResponse, error)
 	// Removes a homework assignment from a course by its unique ID.
 	RemoveHomework(context.Context, *RemoveHomeworkRequest) (*RemoveHomeworkResponse, error)
+	// Add Announcment to the course.
+	AddAnnouncement(context.Context, *AddAnnouncementRequest) (*AddAnnouncementResponse, error)
+	// list all existed announcments.
+	ListAnnouncements(context.Context, *ListAnnouncementsRequest) (*ListAnnouncementsResponse, error)
+	// remove an existing announcement
+	RemoveAnnouncement(context.Context, *RemoveAnnouncementRequest) (*RemoveAnnouncementResponse, error)
 	mustEmbedUnimplementedCourseServiceServer()
 }
 
@@ -268,6 +313,15 @@ func (UnimplementedCourseServiceServer) AddHomework(context.Context, *AddHomewor
 }
 func (UnimplementedCourseServiceServer) RemoveHomework(context.Context, *RemoveHomeworkRequest) (*RemoveHomeworkResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveHomework not implemented")
+}
+func (UnimplementedCourseServiceServer) AddAnnouncement(context.Context, *AddAnnouncementRequest) (*AddAnnouncementResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AddAnnouncement not implemented")
+}
+func (UnimplementedCourseServiceServer) ListAnnouncements(context.Context, *ListAnnouncementsRequest) (*ListAnnouncementsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAnnouncements not implemented")
+}
+func (UnimplementedCourseServiceServer) RemoveAnnouncement(context.Context, *RemoveAnnouncementRequest) (*RemoveAnnouncementResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemoveAnnouncement not implemented")
 }
 func (UnimplementedCourseServiceServer) mustEmbedUnimplementedCourseServiceServer() {}
 func (UnimplementedCourseServiceServer) testEmbeddedByValue()                       {}
@@ -506,6 +560,60 @@ func _CourseService_RemoveHomework_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CourseService_AddAnnouncement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AddAnnouncementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CourseServiceServer).AddAnnouncement(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CourseService_AddAnnouncement_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CourseServiceServer).AddAnnouncement(ctx, req.(*AddAnnouncementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CourseService_ListAnnouncements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAnnouncementsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CourseServiceServer).ListAnnouncements(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CourseService_ListAnnouncements_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CourseServiceServer).ListAnnouncements(ctx, req.(*ListAnnouncementsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _CourseService_RemoveAnnouncement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RemoveAnnouncementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CourseServiceServer).RemoveAnnouncement(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CourseService_RemoveAnnouncement_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CourseServiceServer).RemoveAnnouncement(ctx, req.(*RemoveAnnouncementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CourseService_ServiceDesc is the grpc.ServiceDesc for CourseService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -560,6 +668,18 @@ var CourseService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveHomework",
 			Handler:    _CourseService_RemoveHomework_Handler,
+		},
+		{
+			MethodName: "AddAnnouncement",
+			Handler:    _CourseService_AddAnnouncement_Handler,
+		},
+		{
+			MethodName: "ListAnnouncements",
+			Handler:    _CourseService_ListAnnouncements_Handler,
+		},
+		{
+			MethodName: "RemoveAnnouncement",
+			Handler:    _CourseService_RemoveAnnouncement_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

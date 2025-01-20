@@ -11,6 +11,8 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 )
 
+const databaseURL = "postgres://postgres:bettergr2425@localhost:5432/course_db?sslmode=disable"
+
 var db *bun.DB
 
 // InitializeDatabase ensures that the database exists and initializes the schema.
@@ -29,9 +31,7 @@ func createDatabaseIfNotExists() {
 
 	// Check if the database exists.
 	ctx := context.Background()
-	query := `
-		SELECT 1 FROM pg_database WHERE datname = 'course_db';
-	`
+	query := `SELECT 1 FROM pg_database WHERE datname = 'course_db';`
 	var exists int
 	err := sqldb.QueryRowContext(ctx, query).Scan(&exists)
 	if err != nil && err != sql.ErrNoRows {
@@ -39,7 +39,7 @@ func createDatabaseIfNotExists() {
 	}
 
 	// If the database does not exist, create it.
-	if err == sql.ErrNoRows {
+	if exists == 0 {
 		_, err = sqldb.ExecContext(ctx, `CREATE DATABASE course_db;`)
 		if err != nil {
 			log.Fatalf("Failed to create database: %v", err)
@@ -52,15 +52,24 @@ func createDatabaseIfNotExists() {
 
 // ConnectDB initializes the PostgreSQL database connection.
 func ConnectDB() {
-	dsn := "postgres://postgres:bettergr2425@localhost:5432/course_db?sslmode=disable"
+	dsn := databaseURL
+	if dsn == "" {
+		log.Fatal("DATABASE_URL environment variable is not set")
+	}
+	// Create a pgdriver Connector
 	connector := pgdriver.NewConnector(pgdriver.WithDSN(dsn))
+
+	// Use sql.OpenDB to convert the connector into *sql.DB
 	sqldb := sql.OpenDB(connector)
+
+	// Pass *sql.DB to Bun's NewDB function
 	db = bun.NewDB(sqldb, pgdialect.New())
 
-	// Test the connection.
+	// Test the connection
 	if err := db.Ping(); err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
+
 	log.Println("Connected to PostgreSQL database.")
 }
 
@@ -88,12 +97,13 @@ func createSchemaIfNotExists(ctx context.Context) error {
 
 // Course represents the database schema for courses.
 type Course struct {
-	ID          int32     `bun:",pk,autoincrement"`
-	Name        string    `bun:"name,notnull" validate:"required,min=1,max=100"`
-	Description string    `bun:"description,notnull" validate:"required,min=1,max=500"`
-	Semester    string    `bun:"semester,notnull" validate:"required,min=1,max=20"`
-	StaffIDs    []string  `bun:",array"`
-	StudentIDs  []string  `bun:",array"`
-	CreatedAt   time.Time `bun:",nullzero,notnull,default:current_timestamp"`
-	DeletedAt   time.Time `bun:",soft_delete,nullzero"`
+	ID            string    `bun:",pk"` // Technion course ID
+	Name          string    `bun:"name,notnull"`
+	Description   string    `bun:"description,notnull"`
+	Semester      string    `bun:"semester,notnull"`
+	StaffIDs      []string  `bun:",array"` // Staff IDs
+	StudentIDs    []string  `bun:",array"` // Student IDs
+	Announcements []string  `bun:",array"` // Announcements added to the course
+	CreatedAt     time.Time `bun:",nullzero,notnull,default:current_timestamp"`
+	DeletedAt     time.Time `bun:",soft_delete,nullzero"`
 }

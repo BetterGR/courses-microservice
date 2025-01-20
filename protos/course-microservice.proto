@@ -42,6 +42,16 @@ service CourseService
 
     // Removes a homework assignment from a course by its unique ID.
     rpc RemoveHomework(RemoveHomeworkRequest) returns (RemoveHomeworkResponse);
+
+    //Add Announcment to the course.
+    rpc AddAnnouncement (AddAnnouncementRequest) returns (AddAnnouncementResponse);
+
+    //list all existed announcments.
+    rpc ListAnnouncements (ListAnnouncementsRequest) returns (ListAnnouncementsResponse);
+    
+    //remove an existing announcement
+    rpc RemoveAnnouncement (RemoveAnnouncementRequest) returns (RemoveAnnouncementResponse);
+
 }
 
 // Request to retrieve a course by its unique ID.
@@ -74,22 +84,19 @@ message GetCourseResponse
 
     // Student IDs enrolled in the course.
     repeated string student_ids = 6;
+    
+    // Announcements associated with the course.
+    repeated string announcements = 7;
 }
 
 // Request to create a new course.
-message CreateCourseRequest
-{
-    // Course name.
-    string name = 1;
-
-    // Course description.
-    string description = 2;
-
-    // Course semester.
-    string semester = 3;
-
-    // Authentication token.
-    string token = 4;
+message CreateCourseRequest {
+    // Technion-provided course ID.
+    string course_id = 1; 
+    string name = 2;
+    string description = 3;
+    string semester = 4;
+    string token = 5;
 }
 
 // Response containing the unique ID of the created course.
@@ -136,6 +143,39 @@ message AddStudentRequest
 
     // Authentication token.
     string token = 3;
+}
+
+// Request to add an announcement to a course.
+message AddAnnouncementRequest {
+    string course_id = 1;
+    string title = 2;
+    string content = 3;
+}
+
+// Response for AddAnnouncement.
+message AddAnnouncementResponse {
+    bool success = 1;
+}
+
+// Request to list all announcements for a course.
+message ListAnnouncementsRequest {
+    string course_id = 1;
+}
+
+// Response containing all announcements.
+message ListAnnouncementsResponse {
+    repeated string announcements = 1;
+}
+
+// Request to remove an announcement.
+message RemoveAnnouncementRequest {
+    string course_id = 1;
+    string announcement = 2;
+}
+
+// Response for RemoveAnnouncement.
+message RemoveAnnouncementResponse {
+    bool success = 1;
 }
 
 // Response indicating if the student was successfully added.

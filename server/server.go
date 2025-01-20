@@ -7,7 +7,7 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/BetterGR/course-microservice/course_protobuf"
+	pb "github.com/BetterGR/course-microservice/protos"
 	"google.golang.org/grpc"
 	"k8s.io/klog/v2"
 )
@@ -20,7 +20,6 @@ const (
 
 // courseServer implements the CourseService with mslib integration.
 type courseServer struct {
-	// ms.BaseServiceServer
 	pb.UnimplementedCourseServiceServer
 }
 
@@ -36,12 +35,13 @@ func (s *courseServer) GetCourse(ctx context.Context, req *pb.GetCourseRequest) 
 	}
 
 	return &pb.GetCourseResponse{
-		CourseId:    fmt.Sprintf("%d", course.ID),
-		Name:        course.Name,
-		Description: course.Description,
-		Semester:    course.Semester,
-		StaffIds:    course.StaffIDs,
-		StudentIds:  course.StudentIDs,
+		CourseId:      course.ID,
+		Name:          course.Name,
+		Description:   course.Description,
+		Semester:      course.Semester,
+		StaffIds:      course.StaffIDs,
+		StudentIds:    course.StudentIDs,
+		Announcements: course.Announcements, // Include announcements in the response
 	}, nil
 }
 
@@ -50,6 +50,7 @@ func (s *courseServer) CreateCourse(ctx context.Context, req *pb.CreateCourseReq
 	logger := klog.FromContext(ctx)
 
 	course := &Course{
+		ID:          req.GetCourseId(),
 		Name:        req.GetName(),
 		Description: req.GetDescription(),
 		Semester:    req.GetSemester(),
@@ -61,7 +62,169 @@ func (s *courseServer) CreateCourse(ctx context.Context, req *pb.CreateCourseReq
 	}
 
 	logger.V(5).Info("Created new course", "courseId", course.ID, "name", req.Name)
-	return &pb.CreateCourseResponse{CourseId: fmt.Sprintf("%d", course.ID)}, nil
+	return &pb.CreateCourseResponse{CourseId: course.ID}, nil
+}
+
+// UpdateCourse updates the details of an existing course.
+func (s *courseServer) UpdateCourse(ctx context.Context, req *pb.UpdateCourseRequest) (*pb.UpdateCourseResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received UpdateCourse request", "courseId", req.CourseId)
+
+	course := new(Course)
+	err := db.NewSelect().Model(course).Where("id = ?", req.CourseId).Scan(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("course not found: %w", err)
+	}
+
+	course.Name = req.GetName()
+	course.Description = req.GetDescription()
+	course.Semester = req.GetSemester()
+
+	_, err = db.NewUpdate().Model(course).WherePK().Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update course: %w", err)
+	}
+
+	logger.V(5).Info("Updated course", "courseId", course.ID)
+	return &pb.UpdateCourseResponse{Success: true}, nil
+}
+
+// AddStudentToCourse adds a student to a course.
+func (s *courseServer) AddStudentToCourse(ctx context.Context, req *pb.AddStudentRequest) (*pb.AddStudentResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received AddStudentToCourse request", "courseId", req.CourseId, "studentId", req.StudentId)
+
+	// Fetch the course
+	course := new(Course)
+	err := db.NewSelect().Model(course).Where("id = ?", req.CourseId).Scan(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("course not found: %w", err)
+	}
+
+	// Use raw SQL to append the student ID to the PostgreSQL array
+	_, err = db.NewRaw(`
+		UPDATE courses
+		SET student_i_ds = array_append(student_i_ds, ?)
+		WHERE id = ?`, req.StudentId, req.CourseId).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update student list: %w", err)
+	}
+
+	logger.V(5).Info("Successfully added student to course", "courseId", req.CourseId, "studentId", req.StudentId)
+	return &pb.AddStudentResponse{Success: true}, nil
+}
+
+// RemoveStudentFromCourse removes a student from a course.
+func (s *courseServer) RemoveStudentFromCourse(ctx context.Context, req *pb.RemoveStudentRequest) (*pb.RemoveStudentResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received RemoveStudentFromCourse request", "courseId", req.CourseId, "studentId", req.StudentId)
+
+	// Check if the course exists
+	course := new(Course)
+	err := db.NewSelect().Model(course).Where("id = ?", req.CourseId).Scan(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("course not found: %w", err)
+	}
+
+	// Use raw SQL to remove the student ID from the PostgreSQL array
+	_, err = db.NewRaw(`
+		UPDATE courses
+		SET student_i_ds = array_remove(student_i_ds, ?)
+		WHERE id = ?`, req.StudentId, req.CourseId).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove student from course: %w", err)
+	}
+
+	logger.V(5).Info("Successfully removed student from course", "courseId", req.CourseId, "studentId", req.StudentId)
+	return &pb.RemoveStudentResponse{Success: true}, nil
+}
+
+// AddAnnouncement adds a new announcement to a course.
+func (s *courseServer) AddAnnouncement(ctx context.Context, req *pb.AddAnnouncementRequest) (*pb.AddAnnouncementResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received AddAnnouncement request", "courseId", req.CourseId, "title", req.Title)
+
+	// Check if the course exists
+	course := new(Course)
+	err := db.NewSelect().Model(course).Where("id = ?", req.CourseId).Scan(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("course not found: %w", err)
+	}
+
+	// Use raw SQL to append the announcement to PostgreSQL array
+	_, err = db.NewRaw(`
+		UPDATE courses
+		SET announcements = array_append(announcements, ?)
+		WHERE id = ?`, fmt.Sprintf("%s: %s", req.Title, req.Content), req.CourseId).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add announcement: %w", err)
+	}
+
+	logger.V(5).Info("Successfully added announcement", "courseId", req.CourseId, "title", req.Title)
+	return &pb.AddAnnouncementResponse{Success: true}, nil
+}
+
+// ListAnnouncements lists all announcements for a course.
+func (s *courseServer) ListAnnouncements(ctx context.Context, req *pb.ListAnnouncementsRequest) (*pb.ListAnnouncementsResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received ListAnnouncements request", "courseId", req.CourseId)
+
+	course := new(Course)
+	err := db.NewSelect().Model(course).Where("id = ?", req.CourseId).Scan(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("course not found: %w", err)
+	}
+
+	return &pb.ListAnnouncementsResponse{
+		Announcements: course.Announcements,
+	}, nil
+}
+
+// RemoveAnnouncement removes an announcement from a course.
+func (s *courseServer) RemoveAnnouncement(ctx context.Context, req *pb.RemoveAnnouncementRequest) (*pb.RemoveAnnouncementResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received RemoveAnnouncement request", "courseId", req.CourseId, "announcement", req.Announcement)
+
+	// Check if the course exists
+	course := new(Course)
+	err := db.NewSelect().Model(course).Where("id = ?", req.CourseId).Scan(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("course not found: %w", err)
+	}
+
+	// Use raw SQL to remove the announcement from PostgreSQL array
+	_, err = db.NewRaw(`
+		UPDATE courses
+		SET announcements = array_remove(announcements, ?)
+		WHERE id = ?`, req.Announcement, req.CourseId).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to remove announcement: %w", err)
+	}
+
+	logger.V(5).Info("Successfully removed announcement", "courseId", req.CourseId, "announcement", req.Announcement)
+	return &pb.RemoveAnnouncementResponse{Success: true}, nil
+}
+
+// DeleteCourse deletes a course by its ID.
+func (s *courseServer) DeleteCourse(ctx context.Context, req *pb.DeleteCourseRequest) (*pb.DeleteCourseResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received DeleteCourse request", "courseId", req.CourseId)
+
+	// Create a new instance of Course and specify it in the deletion query
+	course := &Course{}
+	res, err := db.NewDelete().Model(course).Where("id = ?", req.CourseId).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete course: %w", err)
+	}
+
+	// Check the number of rows affected
+	rowsAffected, _ := res.RowsAffected()
+	if rowsAffected == 0 {
+		return nil, fmt.Errorf("course not found or already deleted")
+	}
+
+	logger.V(5).Info("Deleted course", "courseId", req.CourseId)
+	return &pb.DeleteCourseResponse{Success: true}, nil
 }
 
 func main() {
