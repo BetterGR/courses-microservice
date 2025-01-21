@@ -14,7 +14,7 @@ import (
 
 const (
 	// address defines the server's listening address.
-	address  = "localhost:50052"
+	address  = "localhost:50054"
 	protocol = "tcp"
 )
 
@@ -203,6 +203,28 @@ func (s *courseServer) RemoveAnnouncement(ctx context.Context, req *pb.RemoveAnn
 
 	logger.V(5).Info("Successfully removed announcement", "courseId", req.CourseId, "announcement", req.Announcement)
 	return &pb.RemoveAnnouncementResponse{Success: true}, nil
+}
+
+// GetAnnouncement provides a hardcoded announcement for a course.
+func (s *courseServer) GetAnnouncement(ctx context.Context, req *pb.GetAnnouncementRequest) (*pb.GetAnnouncementResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received GetAnnouncement request", "courseId", req.CourseId)
+
+	// Hardcoded announcements for specific courses
+	hardcodedAnnouncements := map[string]string{
+		"236781": "Midterm exam on April 10th. Don't forget to review chapters 1-5.",
+		"234311": "Final project deadline is June 1st. Submit via the course portal.",
+	}
+
+	announcement, exists := hardcodedAnnouncements[req.CourseId]
+	if !exists {
+		return nil, fmt.Errorf("no announcement found for course ID: %s", req.CourseId)
+	}
+
+	return &pb.GetAnnouncementResponse{
+		CourseId:     req.CourseId,
+		Announcement: announcement,
+	}, nil
 }
 
 // DeleteCourse deletes a course by its ID.

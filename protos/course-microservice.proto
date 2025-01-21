@@ -43,15 +43,30 @@ service CourseService
     // Removes a homework assignment from a course by its unique ID.
     rpc RemoveHomework(RemoveHomeworkRequest) returns (RemoveHomeworkResponse);
 
+    
     //Add Announcment to the course.
     rpc AddAnnouncement (AddAnnouncementRequest) returns (AddAnnouncementResponse);
 
+    // Retrieves a specific announcement for a course.
+    rpc GetAnnouncement(GetAnnouncementRequest) returns (GetAnnouncementResponse);
+    
     //list all existed announcments.
     rpc ListAnnouncements (ListAnnouncementsRequest) returns (ListAnnouncementsResponse);
     
     //remove an existing announcement
     rpc RemoveAnnouncement (RemoveAnnouncementRequest) returns (RemoveAnnouncementResponse);
 
+}
+
+// Request to get an announcement by course ID.
+message GetAnnouncementRequest {
+    // Course ID to retrieve the announcement for.
+    string course_id = 1; 
+}
+// Response containing the announcement for the course.
+message GetAnnouncementResponse {
+    string course_id = 1;       // Course ID.
+    string announcement = 2;    // Announcement content.
 }
 
 // Request to retrieve a course by its unique ID.

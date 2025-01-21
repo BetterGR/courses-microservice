@@ -11,7 +11,7 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 )
 
-const databaseURL = "postgres://postgres:bettergr2425@localhost:5432/course_db?sslmode=disable"
+const databaseURL = "postgres://postgres:bettergr2425@postgres:5432/course_db?sslmode=disable"
 
 var db *bun.DB
 
