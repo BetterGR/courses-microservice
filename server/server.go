@@ -227,6 +227,51 @@ func (s *courseServer) GetAnnouncement(ctx context.Context, req *pb.GetAnnouncem
 	}, nil
 }
 
+func (s *courseServer) GetHomework(ctx context.Context, req *pb.GetHomeworkRequest) (*pb.GetHomeworkResponse, error) {
+	logger := klog.FromContext(ctx)
+	logger.V(5).Info("Received GetHomework request", "courseId", req.CourseId, "homeworkId", req.HomeworkId)
+
+	// Hardcoded homework data based on course_id and homework_id
+	hardcodedHomeworks := map[string]map[string]*pb.GetHomeworkResponse{
+		"236781": {
+			"1": {
+				CourseId:    "236781",
+				HomeworkId:  "1",
+				Title:       "Assignment 1",
+				Description: "Complete the first assignment covering chapters 1-3",
+				DueDate:     "2025-03-15",
+			},
+			"2": {
+				CourseId:    "236781",
+				HomeworkId:  "2",
+				Title:       "Assignment 2",
+				Description: "Write a report on theoretical aspects",
+				DueDate:     "2025-04-10",
+			},
+		},
+		"234311": {
+			"1": {
+				CourseId:    "234311",
+				HomeworkId:  "1",
+				Title:       "Final Project",
+				Description: "Develop a final project using course concepts",
+				DueDate:     "2025-06-01",
+			},
+		},
+	}
+
+	// Check if the course and homework exist
+	if courseHomeworks, ok := hardcodedHomeworks[req.CourseId]; ok {
+		if homework, ok := courseHomeworks[req.HomeworkId]; ok {
+			logger.V(5).Info("Homework found", "courseId", req.CourseId, "homeworkId", req.HomeworkId)
+			return homework, nil
+		}
+	}
+
+	logger.V(5).Info("Homework not found", "courseId", req.CourseId, "homeworkId", req.HomeworkId)
+	return nil, fmt.Errorf("homework with id %s not found in course %s", req.HomeworkId, req.CourseId)
+}
+
 // DeleteCourse deletes a course by its ID.
 func (s *courseServer) DeleteCourse(ctx context.Context, req *pb.DeleteCourseRequest) (*pb.DeleteCourseResponse, error) {
 	logger := klog.FromContext(ctx)

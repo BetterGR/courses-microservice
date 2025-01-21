@@ -34,6 +34,7 @@ const (
 	CourseService_AddAnnouncement_FullMethodName         = "/course.CourseService/AddAnnouncement"
 	CourseService_GetAnnouncement_FullMethodName         = "/course.CourseService/GetAnnouncement"
 	CourseService_ListAnnouncements_FullMethodName       = "/course.CourseService/ListAnnouncements"
+	CourseService_GetHomework_FullMethodName             = "/course.CourseService/GetHomework"
 	CourseService_RemoveAnnouncement_FullMethodName      = "/course.CourseService/RemoveAnnouncement"
 )
 
@@ -73,6 +74,8 @@ type CourseServiceClient interface {
 	GetAnnouncement(ctx context.Context, in *GetAnnouncementRequest, opts ...grpc.CallOption) (*GetAnnouncementResponse, error)
 	// list all existed announcments.
 	ListAnnouncements(ctx context.Context, in *ListAnnouncementsRequest, opts ...grpc.CallOption) (*ListAnnouncementsResponse, error)
+	// get homework according to hw ID.
+	GetHomework(ctx context.Context, in *GetHomeworkRequest, opts ...grpc.CallOption) (*GetHomeworkResponse, error)
 	// remove an existing announcement
 	RemoveAnnouncement(ctx context.Context, in *RemoveAnnouncementRequest, opts ...grpc.CallOption) (*RemoveAnnouncementResponse, error)
 }
@@ -235,6 +238,16 @@ func (c *courseServiceClient) ListAnnouncements(ctx context.Context, in *ListAnn
 	return out, nil
 }
 
+func (c *courseServiceClient) GetHomework(ctx context.Context, in *GetHomeworkRequest, opts ...grpc.CallOption) (*GetHomeworkResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetHomeworkResponse)
+	err := c.cc.Invoke(ctx, CourseService_GetHomework_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *courseServiceClient) RemoveAnnouncement(ctx context.Context, in *RemoveAnnouncementRequest, opts ...grpc.CallOption) (*RemoveAnnouncementResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(RemoveAnnouncementResponse)
@@ -281,6 +294,8 @@ type CourseServiceServer interface {
 	GetAnnouncement(context.Context, *GetAnnouncementRequest) (*GetAnnouncementResponse, error)
 	// list all existed announcments.
 	ListAnnouncements(context.Context, *ListAnnouncementsRequest) (*ListAnnouncementsResponse, error)
+	// get homework according to hw ID.
+	GetHomework(context.Context, *GetHomeworkRequest) (*GetHomeworkResponse, error)
 	// remove an existing announcement
 	RemoveAnnouncement(context.Context, *RemoveAnnouncementRequest) (*RemoveAnnouncementResponse, error)
 	mustEmbedUnimplementedCourseServiceServer()
@@ -337,6 +352,9 @@ func (UnimplementedCourseServiceServer) GetAnnouncement(context.Context, *GetAnn
 }
 func (UnimplementedCourseServiceServer) ListAnnouncements(context.Context, *ListAnnouncementsRequest) (*ListAnnouncementsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAnnouncements not implemented")
+}
+func (UnimplementedCourseServiceServer) GetHomework(context.Context, *GetHomeworkRequest) (*GetHomeworkResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetHomework not implemented")
 }
 func (UnimplementedCourseServiceServer) RemoveAnnouncement(context.Context, *RemoveAnnouncementRequest) (*RemoveAnnouncementResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveAnnouncement not implemented")
@@ -632,6 +650,24 @@ func _CourseService_ListAnnouncements_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CourseService_GetHomework_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetHomeworkRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CourseServiceServer).GetHomework(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CourseService_GetHomework_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CourseServiceServer).GetHomework(ctx, req.(*GetHomeworkRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CourseService_RemoveAnnouncement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RemoveAnnouncementRequest)
 	if err := dec(in); err != nil {
@@ -716,6 +752,10 @@ var CourseService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListAnnouncements",
 			Handler:    _CourseService_ListAnnouncements_Handler,
+		},
+		{
+			MethodName: "GetHomework",
+			Handler:    _CourseService_GetHomework_Handler,
 		},
 		{
 			MethodName: "RemoveAnnouncement",

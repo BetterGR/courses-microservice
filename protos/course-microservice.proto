@@ -53,6 +53,10 @@ service CourseService
     //list all existed announcments.
     rpc ListAnnouncements (ListAnnouncementsRequest) returns (ListAnnouncementsResponse);
     
+    //get homework according to hw ID.
+    rpc GetHomework(GetHomeworkRequest) returns (GetHomeworkResponse);
+    
+
     //remove an existing announcement
     rpc RemoveAnnouncement (RemoveAnnouncementRequest) returns (RemoveAnnouncementResponse);
 
@@ -67,6 +71,22 @@ message GetAnnouncementRequest {
 message GetAnnouncementResponse {
     string course_id = 1;       // Course ID.
     string announcement = 2;    // Announcement content.
+}
+
+
+// Request message to get a specific homework.
+message GetHomeworkRequest {
+    string course_id = 1;
+    string homework_id = 2;
+}
+
+// Response message containing homework details.
+message GetHomeworkResponse {
+    string course_id = 1;
+    string homework_id = 2;
+    string title = 3;
+    string description = 4;
+    string due_date = 5;
 }
 
 // Request to retrieve a course by its unique ID.
