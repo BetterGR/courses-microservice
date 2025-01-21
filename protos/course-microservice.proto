@@ -10,7 +10,7 @@ service CourseService
     // Retrieves details of a course by its unique ID.
     rpc GetCourse(GetCourseRequest) returns (GetCourseResponse);
 
-    // Creates a new course with the given details.
+    // Creates a new course with given details.
     rpc CreateCourse(CreateCourseRequest) returns (CreateCourseResponse);
 
     // Updates the details of an existing course by its unique ID.

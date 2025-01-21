@@ -205,7 +205,7 @@ func (s *courseServer) RemoveAnnouncement(ctx context.Context, req *pb.RemoveAnn
 	return &pb.RemoveAnnouncementResponse{Success: true}, nil
 }
 
-// GetAnnouncement provides a hardcoded announcement for a course.
+// GetAnnouncement provides a hardcoded announcement for a course according to id.
 func (s *courseServer) GetAnnouncement(ctx context.Context, req *pb.GetAnnouncementRequest) (*pb.GetAnnouncementResponse, error) {
 	logger := klog.FromContext(ctx)
 	logger.V(5).Info("Received GetAnnouncement request", "courseId", req.CourseId)

@@ -32,6 +32,7 @@ const (
 	CourseService_AddHomework_FullMethodName             = "/course.CourseService/AddHomework"
 	CourseService_RemoveHomework_FullMethodName          = "/course.CourseService/RemoveHomework"
 	CourseService_AddAnnouncement_FullMethodName         = "/course.CourseService/AddAnnouncement"
+	CourseService_GetAnnouncement_FullMethodName         = "/course.CourseService/GetAnnouncement"
 	CourseService_ListAnnouncements_FullMethodName       = "/course.CourseService/ListAnnouncements"
 	CourseService_RemoveAnnouncement_FullMethodName      = "/course.CourseService/RemoveAnnouncement"
 )
@@ -44,7 +45,7 @@ const (
 type CourseServiceClient interface {
 	// Retrieves details of a course by its unique ID.
 	GetCourse(ctx context.Context, in *GetCourseRequest, opts ...grpc.CallOption) (*GetCourseResponse, error)
-	// Creates a new course with the given details.
+	// Creates a new course with given details.
 	CreateCourse(ctx context.Context, in *CreateCourseRequest, opts ...grpc.CallOption) (*CreateCourseResponse, error)
 	// Updates the details of an existing course by its unique ID.
 	UpdateCourse(ctx context.Context, in *UpdateCourseRequest, opts ...grpc.CallOption) (*UpdateCourseResponse, error)
@@ -68,6 +69,8 @@ type CourseServiceClient interface {
 	RemoveHomework(ctx context.Context, in *RemoveHomeworkRequest, opts ...grpc.CallOption) (*RemoveHomeworkResponse, error)
 	// Add Announcment to the course.
 	AddAnnouncement(ctx context.Context, in *AddAnnouncementRequest, opts ...grpc.CallOption) (*AddAnnouncementResponse, error)
+	// Retrieves a specific announcement for a course.
+	GetAnnouncement(ctx context.Context, in *GetAnnouncementRequest, opts ...grpc.CallOption) (*GetAnnouncementResponse, error)
 	// list all existed announcments.
 	ListAnnouncements(ctx context.Context, in *ListAnnouncementsRequest, opts ...grpc.CallOption) (*ListAnnouncementsResponse, error)
 	// remove an existing announcement
@@ -212,6 +215,16 @@ func (c *courseServiceClient) AddAnnouncement(ctx context.Context, in *AddAnnoun
 	return out, nil
 }
 
+func (c *courseServiceClient) GetAnnouncement(ctx context.Context, in *GetAnnouncementRequest, opts ...grpc.CallOption) (*GetAnnouncementResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetAnnouncementResponse)
+	err := c.cc.Invoke(ctx, CourseService_GetAnnouncement_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *courseServiceClient) ListAnnouncements(ctx context.Context, in *ListAnnouncementsRequest, opts ...grpc.CallOption) (*ListAnnouncementsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(ListAnnouncementsResponse)
@@ -240,7 +253,7 @@ func (c *courseServiceClient) RemoveAnnouncement(ctx context.Context, in *Remove
 type CourseServiceServer interface {
 	// Retrieves details of a course by its unique ID.
 	GetCourse(context.Context, *GetCourseRequest) (*GetCourseResponse, error)
-	// Creates a new course with the given details.
+	// Creates a new course with given details.
 	CreateCourse(context.Context, *CreateCourseRequest) (*CreateCourseResponse, error)
 	// Updates the details of an existing course by its unique ID.
 	UpdateCourse(context.Context, *UpdateCourseRequest) (*UpdateCourseResponse, error)
@@ -264,6 +277,8 @@ type CourseServiceServer interface {
 	RemoveHomework(context.Context, *RemoveHomeworkRequest) (*RemoveHomeworkResponse, error)
 	// Add Announcment to the course.
 	AddAnnouncement(context.Context, *AddAnnouncementRequest) (*AddAnnouncementResponse, error)
+	// Retrieves a specific announcement for a course.
+	GetAnnouncement(context.Context, *GetAnnouncementRequest) (*GetAnnouncementResponse, error)
 	// list all existed announcments.
 	ListAnnouncements(context.Context, *ListAnnouncementsRequest) (*ListAnnouncementsResponse, error)
 	// remove an existing announcement
@@ -316,6 +331,9 @@ func (UnimplementedCourseServiceServer) RemoveHomework(context.Context, *RemoveH
 }
 func (UnimplementedCourseServiceServer) AddAnnouncement(context.Context, *AddAnnouncementRequest) (*AddAnnouncementResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddAnnouncement not implemented")
+}
+func (UnimplementedCourseServiceServer) GetAnnouncement(context.Context, *GetAnnouncementRequest) (*GetAnnouncementResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAnnouncement not implemented")
 }
 func (UnimplementedCourseServiceServer) ListAnnouncements(context.Context, *ListAnnouncementsRequest) (*ListAnnouncementsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAnnouncements not implemented")
@@ -578,6 +596,24 @@ func _CourseService_AddAnnouncement_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CourseService_GetAnnouncement_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAnnouncementRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CourseServiceServer).GetAnnouncement(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CourseService_GetAnnouncement_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CourseServiceServer).GetAnnouncement(ctx, req.(*GetAnnouncementRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CourseService_ListAnnouncements_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListAnnouncementsRequest)
 	if err := dec(in); err != nil {
@@ -672,6 +708,10 @@ var CourseService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AddAnnouncement",
 			Handler:    _CourseService_AddAnnouncement_Handler,
+		},
+		{
+			MethodName: "GetAnnouncement",
+			Handler:    _CourseService_GetAnnouncement_Handler,
 		},
 		{
 			MethodName: "ListAnnouncements",
