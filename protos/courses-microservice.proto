@@ -1,0 +1,175 @@
+syntax = "proto3";
+
+option go_package = "github.com/BetterGR/courses-microservice/protos";
+
+package courses;
+
+service CoursesService {
+    // Get course.
+    rpc GetCourse (GetCourseRequest) returns (GetCourseResponse);
+    // Create a new course.
+    rpc CreateCourse (CreateCourseRequest) returns (CreateCourseResponse);
+    // Update a course.
+    rpc UpdateCourse (UpdateCourseRequest) returns (UpdateCourseResponse);
+    // Add a student to a course.
+    rpc AddStudentToCourse (AddStudentRequest) returns (AddStudentResponse);
+    // Remove a student from a course.
+    rpc RemoveStudentFromCourse (RemoveStudentRequest) returns (RemoveStudentResponse);
+    // Add a staff member to a course.
+    rpc AddStaffToCourse (AddStaffRequest) returns (AddStaffResponse);
+    // Remove a staff member from a course.
+    rpc RemoveStaffFromCourse (RemoveStaffRequest) returns (RemoveStaffResponse);
+    // Delete a course.
+    rpc DeleteCourse (DeleteCourseRequest) returns (DeleteCourseResponse);
+    // Get all students enrolled in a course.
+    rpc GetStudents (GetStudentsRequest) returns (GetStudentsResponse);
+    // Get all staff members assigned to a course.
+    rpc GetStaff (GetStaffRequest) returns (GetStaffResponse);
+    // Upload course material.
+    rpc UploadCourseMaterial (UploadCourseMaterialRequest) returns (UploadCourseMaterialResponse);
+    // Get course material.
+    rpc GetCourseMaterial (GetCourseMaterialRequest) returns (GetCourseMaterialResponse);
+}
+
+// Request message for getting a course.
+message GetCourseRequest {
+    string token = 1;
+    string id = 2;
+}
+
+// Response message for getting a course.
+message GetCourseResponse {
+    Course course = 1;
+}
+
+// Request message for creating a new course.
+message CreateCourseRequest {
+    string token = 1;
+    Course course = 2;
+}
+
+// Response message for creating a new course.
+message CreateCourseResponse {
+    Course course = 1;
+}
+
+// Request message for updating a course.
+message UpdateCourseRequest {
+    string token = 1;
+    Course course = 2;
+}
+
+// Response message for updating a course.
+message UpdateCourseResponse {
+    Course course = 1;
+}
+
+// Request message for adding a student to a course.
+message AddStudentRequest {
+    string token = 1;
+    string courseId = 2;
+    string studentId = 3;
+}
+
+// Response message for adding a student to a course.
+message AddStudentResponse {
+}
+
+// Request message for removing a student from a course.
+message RemoveStudentRequest {
+    string token = 1;
+    string courseId = 2;
+    string studentId = 3;
+}
+
+// Response message for removing a student from a course.
+message RemoveStudentResponse {
+}
+
+// Request message for adding a staff member to a course.
+message AddStaffRequest {
+    string token = 1;
+    string courseId = 2;
+    string staffId = 3;
+}
+
+// Response message for adding a staff member to a course.
+message AddStaffResponse {
+}
+
+// Request message for removing a staff member from a course.
+message RemoveStaffRequest {
+    string token = 1;
+    string courseId = 2;
+    string staffId = 3;
+}
+
+// Response message for removing a staff member from a course.
+message RemoveStaffResponse {
+}
+
+// Request message for deleting a course.
+message DeleteCourseRequest {
+    string token = 1;
+    string id = 2; 
+}
+
+// Response message for deleting a course.
+message DeleteCourseResponse {
+}
+
+// Request message for getting all students in a course.
+message GetStudentsRequest {
+    string token = 1;
+    string id = 2;
+}
+
+// Response message for getting all students in a course.
+message GetStudentsResponse {
+    repeated string studentIds = 1;
+}
+
+// Request message for getting all staff members in a course.
+message GetStaffRequest {
+    string token = 1;
+    string id = 2;
+}
+
+// Response message for getting all staff members in a course.
+message GetStaffResponse {
+    repeated string staffIds = 1;
+}
+
+// Request message for uploading course material.
+message UploadCourseMaterialRequest {
+    string token = 1;
+    string courseId = 2;
+    string courseMaterial = 3;
+}
+
+// Response message for uploading course material.
+message UploadCourseMaterialResponse {
+    Course course = 1;
+}
+
+// Request message for getting course material.
+message GetCourseMaterialRequest {
+    string token = 1;
+    string courseId = 2;
+}
+
+// Response message for getting course material.
+message GetCourseMaterialResponse {
+    string courseMaterial = 1;
+}
+
+// Message representing a course.
+message Course {
+    string id = 1;
+    string name = 2;
+    string description = 3;
+    string semester = 4;
+    repeated string staffIds = 5;
+    repeated string studentsIds = 6;
+    string courseMaterial = 7;
+}

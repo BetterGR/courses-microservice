@@ -1,0 +1,13 @@
+linters:
+  enable-all: true
+  disable:
+    - exportloopref  # Disables warnings about export loop references
+    - nlreturn       # Disables "newline return" linter
+    - godox          # Disables TODOs or comments checks
+    - ireturn        # Disables checks for explicit return style
+    - depguard
+    - exhaustruct
+
+run:
+  issues-exclude-dirs:
+    - vendor  # Excludes 'vendor' directory from linting
