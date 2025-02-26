@@ -11,6 +11,8 @@ service CoursesService {
     rpc CreateCourse (CreateCourseRequest) returns (CreateCourseResponse);
     // Update a course.
     rpc UpdateCourse (UpdateCourseRequest) returns (UpdateCourseResponse);
+    // Delete a course.
+    rpc DeleteCourse (DeleteCourseRequest) returns (DeleteCourseResponse);
     // Add a student to a course.
     rpc AddStudentToCourse (AddStudentRequest) returns (AddStudentResponse);
     // Remove a student from a course.
@@ -19,12 +21,20 @@ service CoursesService {
     rpc AddStaffToCourse (AddStaffRequest) returns (AddStaffResponse);
     // Remove a staff member from a course.
     rpc RemoveStaffFromCourse (RemoveStaffRequest) returns (RemoveStaffResponse);
-    // Delete a course.
-    rpc DeleteCourse (DeleteCourseRequest) returns (DeleteCourseResponse);
     // Get all students enrolled in a course.
-    rpc GetStudents (GetStudentsRequest) returns (GetStudentsResponse);
+    rpc GetCourseStudents (GetCourseStudentsRequest) returns (GetCourseStudentsResponse);
     // Get all staff members assigned to a course.
-    rpc GetStaff (GetStaffRequest) returns (GetStaffResponse);
+    rpc GetCourseStaff (GetCourseStaffRequest) returns (GetCourseStaffResponse);
+    // Get student's courses.
+    rpc GetStudentCourses (GetStudentCoursesRequest) returns (GetStudentCoursesResponse);
+    // Get staff's courses.
+    rpc GetStaffCourses (GetStaffCoursesRequest) returns (GetStaffCoursesResponse);
+    // Add an announcement to a course.
+    rpc AddAnnouncementToCourse (AddAnnouncementRequest) returns (AddAnnouncementResponse);
+    // Remove an announcement from a course.
+    rpc RemoveAnnouncementFromCourse (RemoveAnnouncementRequest) returns (RemoveAnnouncementResponse);
+    // Update an announcement in a course.
+    rpc UpdateAnnouncementInCourse (UpdateAnnouncementRequest) returns (UpdateAnnouncementResponse);
     // Upload course material.
     rpc UploadCourseMaterial (UploadCourseMaterialRequest) returns (UploadCourseMaterialResponse);
     // Get course material.
@@ -34,7 +44,7 @@ service CoursesService {
 // Request message for getting a course.
 message GetCourseRequest {
     string token = 1;
-    string id = 2;
+    string courseId = 2;
 }
 
 // Response message for getting a course.
@@ -50,7 +60,6 @@ message CreateCourseRequest {
 
 // Response message for creating a new course.
 message CreateCourseResponse {
-    Course course = 1;
 }
 
 // Request message for updating a course.
@@ -61,7 +70,16 @@ message UpdateCourseRequest {
 
 // Response message for updating a course.
 message UpdateCourseResponse {
-    Course course = 1;
+}
+
+// Request message for deleting a course.
+message DeleteCourseRequest {
+    string token = 1;
+    string courseId = 2; 
+}
+
+// Response message for deleting a course.
+message DeleteCourseResponse {
 }
 
 // Request message for adding a student to a course.
@@ -108,36 +126,82 @@ message RemoveStaffRequest {
 message RemoveStaffResponse {
 }
 
-// Request message for deleting a course.
-message DeleteCourseRequest {
-    string token = 1;
-    string id = 2; 
-}
-
-// Response message for deleting a course.
-message DeleteCourseResponse {
-}
-
 // Request message for getting all students in a course.
-message GetStudentsRequest {
+message GetCourseStudentsRequest {
     string token = 1;
-    string id = 2;
+    string courseId = 2;
 }
 
 // Response message for getting all students in a course.
-message GetStudentsResponse {
+message GetCourseStudentsResponse {
     repeated string studentIds = 1;
 }
 
 // Request message for getting all staff members in a course.
-message GetStaffRequest {
+message GetCourseStaffRequest {
     string token = 1;
-    string id = 2;
+    string courseId = 2;
 }
 
 // Response message for getting all staff members in a course.
-message GetStaffResponse {
+message GetCourseStaffResponse {
     repeated string staffIds = 1;
+}
+
+// Request message for getting a student's courses.
+message GetStudentCoursesRequest {
+    string token = 1;
+    string studentId = 2;
+}
+
+// Response message for getting a student's courses.
+message GetStudentCoursesResponse {
+    repeated string coursesIds = 1;
+}
+
+// Request message for getting a staff's courses.
+message GetStaffCoursesRequest {
+    string token = 1;
+    string staffId = 2;
+}
+
+// Response message for getting a staff's courses.
+message GetStaffCoursesResponse {
+    repeated string coursesIds = 1;
+}
+
+// Request message for adding an announcement to a course.
+message AddAnnouncementRequest {
+    string token = 1;
+    string courseId = 2;
+    string announcement = 3;
+}
+
+// Response message for adding an announcement to a course.
+message AddAnnouncementResponse {
+}
+
+// Request message for removing an announcement from a course.
+message RemoveAnnouncementRequest {
+    string token = 1;
+    string courseId = 2;
+    string announcementId = 3;
+}
+
+// Response message for removing an announcement from a course.
+message RemoveAnnouncementResponse {
+}
+
+// Request message for updating an announcement in a course.
+message UpdateAnnouncementRequest {
+    string token = 1;
+    string courseId = 2;
+    string announcementId = 3;
+    string updatedAnnouncement = 4;
+}
+
+// Response message for updating an announcement in a course.
+message UpdateAnnouncementResponse {
 }
 
 // Request message for uploading course material.
@@ -149,7 +213,6 @@ message UploadCourseMaterialRequest {
 
 // Response message for uploading course material.
 message UploadCourseMaterialResponse {
-    Course course = 1;
 }
 
 // Request message for getting course material.
@@ -165,11 +228,10 @@ message GetCourseMaterialResponse {
 
 // Message representing a course.
 message Course {
-    string id = 1;
-    string name = 2;
-    string description = 3;
-    string semester = 4;
-    repeated string staffIds = 5;
-    repeated string studentsIds = 6;
-    string courseMaterial = 7;
+    string courseId = 1;
+    string courseName = 2;
+    string semester = 3;
+    string courseMaterial = 4; // out of scope for now
+    string description = 5;
+    repeated string announcements = 6;
 }

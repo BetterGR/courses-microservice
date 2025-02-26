@@ -58,20 +58,20 @@ func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest
 	}
 
 	logger := klog.FromContext(ctx)
-	logger.V(logLevelDebug).Info("Received GetCourse request", "courseId", req.GetId())
+	logger.V(logLevelDebug).Info("Received GetCourse request", "courseId", req.GetCourseId())
 
-	course, err := s.db.GetCourse(ctx, req.GetId())
+	course, err := s.db.GetCourse(ctx, req.GetCourseId())
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
 	}
 
 	return &cpb.GetCourseResponse{Course: &cpb.Course{
-		Id:          course.GetId(),
-		Name:        course.GetName(),
-		Description: course.GetDescription(),
-		Semester:    course.GetSemester(),
-		StaffIds:    course.GetStaffIds(),
-		StudentsIds: course.GetStudentsIds(),
+		CourseId:       course.GetCourseId(),
+		CourseName:     course.GetCourseName(),
+		Description:    course.GetDescription(),
+		Semester:       course.GetSemester(),
+		CourseMaterial: course.GetCourseMaterial(),
+		Announcements:  course.GetAnnouncements(),
 	}}, nil
 }
 
@@ -86,22 +86,20 @@ func (s *CoursesServer) CreateCourse(
 	}
 
 	logger := klog.FromContext(ctx)
-	logger.V(logLevelDebug).Info("Received CreateCourse request", "courseName", req.GetCourse().GetName())
+	logger.V(logLevelDebug).Info("Received CreateCourse request", "courseName", req.GetCourse().GetCourseName())
 
-	course := &cpb.Course{
-		Id:             req.GetCourse().GetId(),
-		Name:           req.GetCourse().GetName(),
+	if err := s.db.AddCourse(ctx, &cpb.Course{
+		CourseId:       req.GetCourse().GetCourseId(),
+		CourseName:     req.GetCourse().GetCourseName(),
 		Semester:       req.GetCourse().GetSemester(),
 		Description:    req.GetCourse().GetDescription(),
-		StaffIds:       []string{},
-		StudentsIds:    []string{},
 		CourseMaterial: "",
-	}
-	if err := s.db.AddCourse(ctx, course); err != nil {
+		Announcements:  []string{},
+	}); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to add course: %v", err)
 	}
 
-	return &cpb.CreateCourseResponse{Course: course}, nil
+	return &cpb.CreateCourseResponse{}, nil
 }
 
 // UpdateCourse updates an existing course.
@@ -115,22 +113,23 @@ func (s *CoursesServer) UpdateCourse(
 	}
 
 	logger := klog.FromContext(ctx)
-	logger.V(logLevelDebug).Info("Received UpdateCourse request", "courseId", req.GetCourse().GetId())
+	logger.V(logLevelDebug).Info("Received UpdateCourse request", "courseId", req.GetCourse().GetCourseId())
 
-	course, err := s.db.GetCourse(ctx, req.GetCourse().GetId())
+	course, err := s.db.GetCourse(ctx, req.GetCourse().GetCourseId())
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
 	}
 
-	course.Name = req.GetCourse().GetName()
+	course.CourseName = req.GetCourse().GetCourseName()
 	course.Semester = req.GetCourse().GetSemester()
 	course.Description = req.GetCourse().GetDescription()
+	course.CourseMaterial = req.GetCourse().GetCourseMaterial()
 
 	if err = s.db.UpdateCourse(ctx, course); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update course: %v", err)
 	}
 
-	return &cpb.UpdateCourseResponse{Course: course}, nil
+	return &cpb.UpdateCourseResponse{}, nil
 }
 
 // DeleteCourse deletes a course by its ID.
@@ -144,9 +143,9 @@ func (s *CoursesServer) DeleteCourse(
 	}
 
 	logger := klog.FromContext(ctx)
-	logger.V(logLevelDebug).Info("Received DeleteCourse request", "courseId", req.GetId())
+	logger.V(logLevelDebug).Info("Received DeleteCourse request", "courseId", req.GetCourseId())
 
-	if err := s.db.DeleteCourse(ctx, req.GetId()); err != nil {
+	if err := s.db.DeleteCourse(ctx, req.GetCourseId()); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to delete course: %v", err)
 	}
 
@@ -234,95 +233,145 @@ func (s *CoursesServer) RemoveStaffFromCourse(
 	return &cpb.RemoveStaffResponse{}, nil
 }
 
-// GetStudents retrieves the students enrolled in a course.
-func (s *CoursesServer) GetStudents(
+// GetCourseStudents retrieves the students enrolled in a course.
+func (s *CoursesServer) GetCourseStudents(
 	ctx context.Context,
-	req *cpb.GetStudentsRequest,
-) (*cpb.GetStudentsResponse, error) {
+	req *cpb.GetCourseStudentsRequest,
+) (*cpb.GetCourseStudentsResponse, error) {
 	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
 
 	logger := klog.FromContext(ctx)
-	logger.V(logLevelDebug).Info("Received GetStudents request", "courseId", req.GetId())
+	logger.V(logLevelDebug).Info("Received GetCourseStudents request", "courseId", req.GetCourseId())
 
-	course, err := s.db.GetCourse(ctx, req.GetId())
+	studentIDs, err := s.db.GetCourseStudents(ctx, req.GetCourseId())
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
 	}
 
-	return &cpb.GetStudentsResponse{StudentIds: course.GetStudentsIds()}, nil
+	return &cpb.GetCourseStudentsResponse{StudentIds: studentIDs}, nil
 }
 
-// GetStaff retrieves the staff members assigned to a course.
-func (s *CoursesServer) GetStaff(ctx context.Context, req *cpb.GetStaffRequest) (*cpb.GetStaffResponse, error) {
+// GetCourseStaff retrieves the staff members assigned to a course.
+func (s *CoursesServer) GetCourseStaff(ctx context.Context,
+	req *cpb.GetCourseStaffRequest,
+) (*cpb.GetCourseStaffResponse, error) {
 	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
 
 	logger := klog.FromContext(ctx)
-	logger.V(logLevelDebug).Info("Received GetStaff request", "courseId", req.GetId())
+	logger.V(logLevelDebug).Info("Received GetCourseStaff request", "courseId", req.GetCourseId())
 
-	course, err := s.db.GetCourse(ctx, req.GetId())
+	staffIDs, err := s.db.GetCourseStaff(ctx, req.GetCourseId())
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
 	}
 
-	return &cpb.GetStaffResponse{StaffIds: course.GetStaffIds()}, nil
+	return &cpb.GetCourseStaffResponse{StaffIds: staffIDs}, nil
 }
 
-// UploadCourseMaterial handles updating the course material.
-func (s *CoursesServer) UploadCourseMaterial(ctx context.Context,
-	req *cpb.UploadCourseMaterialRequest,
-) (*cpb.UploadCourseMaterialResponse, error) {
+// GetStudentCourses retrieves the courses a student is enrolled in.
+func (s *CoursesServer) GetStudentCourses(ctx context.Context,
+	req *cpb.GetStudentCoursesRequest,
+) (*cpb.GetStudentCoursesResponse, error) {
 	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
 
 	logger := klog.FromContext(ctx)
-	logger.V(logLevelDebug).Info("Received UploadCourseMaterial request", "courseId", req.GetCourseId())
+	logger.V(logLevelDebug).Info("Received GetStudentCourses request", "studentId", req.GetStudentId())
 
-	if err := s.db.UpdateCourseMaterial(ctx, req.GetCourseId(), req.GetCourseMaterial()); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to update course material: %v", err)
-	}
-
-	course, err := s.db.GetCourse(ctx, req.GetCourseId())
+	courseIDs, err := s.db.GetStudentCourses(ctx, req.GetStudentId())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
+		return nil, status.Errorf(codes.NotFound, "student not found: %v", err)
 	}
 
-	return &cpb.UploadCourseMaterialResponse{Course: &cpb.Course{
-		Id:             course.GetId(),
-		Name:           course.GetName(),
-		Description:    course.GetDescription(),
-		Semester:       course.GetSemester(),
-		StaffIds:       course.GetStaffIds(),
-		StudentsIds:    course.GetStudentsIds(),
-		CourseMaterial: course.GetCourseMaterial(),
-	}}, nil
+	return &cpb.GetStudentCoursesResponse{CoursesIds: courseIDs}, nil
 }
 
-// GetCourseMaterial handles retrieving the course material.
-func (s *CoursesServer) GetCourseMaterial(ctx context.Context,
-	req *cpb.GetCourseMaterialRequest,
-) (*cpb.GetCourseMaterialResponse, error) {
+// GetStaffCourses retrieves the courses a staff member is associated with.
+func (s *CoursesServer) GetStaffCourses(ctx context.Context,
+	req *cpb.GetStaffCoursesRequest,
+) (*cpb.GetStaffCoursesResponse, error) {
 	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
 
 	logger := klog.FromContext(ctx)
-	logger.V(logLevelDebug).Info("Received GetCourseMaterial request", "courseId", req.GetCourseId())
+	logger.V(logLevelDebug).Info("Received GetStaffCourses request", "staffId", req.GetStaffId())
 
-	material, err := s.db.GetCourseMaterial(ctx, req.GetCourseId())
+	courseIDs, err := s.db.GetStaffCourses(ctx, req.GetStaffId())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
+		return nil, status.Errorf(codes.NotFound, "staff not found: %v", err)
 	}
 
-	return &cpb.GetCourseMaterialResponse{CourseMaterial: material}, nil
+	return &cpb.GetStaffCoursesResponse{CoursesIds: courseIDs}, nil
+}
+
+// AddAnnouncementToCourse adds an announcement to a course.
+func (s *CoursesServer) AddAnnouncementToCourse(ctx context.Context,
+	req *cpb.AddAnnouncementRequest,
+) (*cpb.AddAnnouncementResponse, error) {
+	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
+
+	logger := klog.FromContext(ctx)
+	logger.V(logLevelDebug).Info("Received AddAnnouncementToCourse request", "courseId", req.GetCourseId())
+
+	if err := s.db.AddAnnouncement(ctx, req.GetCourseId(), req.GetAnnouncement()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to add announcement to course: %v", err)
+	}
+
+	return &cpb.AddAnnouncementResponse{}, nil
+}
+
+// RemoveAnnouncementFromCourse removes an announcement from a course.
+func (s *CoursesServer) RemoveAnnouncementFromCourse(ctx context.Context,
+	req *cpb.RemoveAnnouncementRequest,
+) (*cpb.RemoveAnnouncementResponse, error) {
+	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
+
+	logger := klog.FromContext(ctx)
+	logger.V(logLevelDebug).Info("Received RemoveAnnouncementFromCourse request",
+		"courseId", req.GetCourseId(), "announcementId", req.GetAnnouncementId())
+
+	if err := s.db.RemoveAnnouncement(ctx, req.GetCourseId(), req.GetAnnouncementId()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to remove announcement from course: %v", err)
+	}
+
+	return &cpb.RemoveAnnouncementResponse{}, nil
+}
+
+// UpdateAnnouncementInCourse updates an announcement in a course.
+func (s *CoursesServer) UpdateAnnouncementInCourse(ctx context.Context,
+	req *cpb.UpdateAnnouncementRequest,
+) (*cpb.UpdateAnnouncementResponse, error) {
+	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
+
+	logger := klog.FromContext(ctx)
+	logger.V(logLevelDebug).Info("Received UpdateAnnouncementInCourse request",
+		"courseId", req.GetCourseId(), "announcementId", req.GetAnnouncementId())
+
+	if err := s.db.UpdateAnnouncement(ctx, req.GetCourseId(),
+		req.GetAnnouncementId(), req.GetUpdatedAnnouncement()); err != nil {
+		return nil, status.Errorf(codes.Internal, "failed to update announcement in course: %v", err)
+	}
+
+	return &cpb.UpdateAnnouncementResponse{}, nil
 }
 
 func main() {

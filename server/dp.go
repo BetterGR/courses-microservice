@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	spb "github.com/BetterGR/courses-microservice/protos"
 	"github.com/uptrace/bun"
@@ -86,6 +87,8 @@ func ConnectDB() (*Database, error) {
 func (d *Database) createSchemaIfNotExists(ctx context.Context) error {
 	models := []interface{}{
 		(*Course)(nil),
+		(*CourseStudent)(nil),
+		(*CourseStaff)(nil),
 	}
 
 	for _, model := range models {
@@ -101,26 +104,31 @@ func (d *Database) createSchemaIfNotExists(ctx context.Context) error {
 
 // Course represents the database schema for courses.
 type Course struct {
-	UniqueID       string   `bun:",pk,default:gen_random_uuid()"`
-	CourseID       string   `bun:"course_id,unique,notnull"`
-	CourseName     string   `bun:"course_name,notnull"`
-	Semester       string   `bun:"semester,notnull"`
-	CourseMaterial string   `bun:"course_material,notnull"` // JSON string storing name and semester.
-	Description    string   `bun:"description"`
-	StaffIDs       []string `bun:"staff_ids,notnull"`
-	StudentsIDs    []string `bun:"students_ids,notnull"`
+	CourseID      string    `bun:"course_id,unique,notnull"`
+	CourseName    string    `bun:"course_name,notnull"`
+	Semester      string    `bun:"semester,notnull"`
+	Description   string    `bun:"description"`
+	Announcements []string  `bun:"announcements,type:jsonb"`
+	CreatedAt     time.Time `bun:"created_at,default:current_timestamp"`
+	UpdatedAt     time.Time `bun:"updated_at,default:current_timestamp"`
+}
+
+type CourseStudent struct {
+	CourseID  string `bun:"course_id"`
+	StudentID string `bun:"student_id"`
+}
+
+type CourseStaff struct {
+	CourseID string `bun:"course_id"`
+	StaffID  string `bun:"staff_id"`
 }
 
 // AddCourse inserts a new course into the database using the proto message.
 func (d *Database) AddCourse(ctx context.Context, course *spb.Course) error {
 	_, err := d.db.NewInsert().Model(&Course{
-		CourseID:       course.GetId(),
-		CourseName:     course.GetName(),
-		Semester:       course.GetSemester(),
-		CourseMaterial: course.GetCourseMaterial(),
-		Description:    course.GetDescription(),
-		StaffIDs:       course.GetStaffIds(),
-		StudentsIDs:    course.GetStudentsIds(),
+		CourseID:   course.GetCourseId(),
+		CourseName: course.GetCourseName(),
+		Semester:   course.GetSemester(),
 	}).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to add course: %w", err)
@@ -137,27 +145,22 @@ func (d *Database) GetCourse(ctx context.Context, id string) (*spb.Course, error
 	}
 
 	return &spb.Course{
-		Id:             course.CourseID,
-		Name:           course.CourseName,
-		Semester:       course.Semester,
-		CourseMaterial: course.CourseMaterial,
-		Description:    course.Description,
-		StaffIds:       course.StaffIDs,
-		StudentsIds:    course.StudentsIDs,
+		CourseId:      course.CourseID,
+		CourseName:    course.CourseName,
+		Semester:      course.Semester,
+		Description:   course.Description,
+		Announcements: course.Announcements,
 	}, nil
 }
 
 // UpdateCourse updates an existing course in the database using the proto message.
 func (d *Database) UpdateCourse(ctx context.Context, course *spb.Course) error {
 	_, err := d.db.NewUpdate().Model(&Course{
-		CourseID:       course.GetId(),
-		CourseName:     course.GetName(),
-		Semester:       course.GetSemester(),
-		CourseMaterial: course.GetCourseMaterial(),
-		Description:    course.GetDescription(),
-		StaffIDs:       course.GetStaffIds(),
-		StudentsIDs:    course.GetStudentsIds(),
-	}).Where("course_id = ?", course.GetId()).Exec(ctx)
+		CourseID:    course.GetCourseId(),
+		CourseName:  course.GetCourseName(),
+		Semester:    course.GetSemester(),
+		Description: course.GetDescription(),
+	}).Where("course_id = ?", course.GetCourseId()).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to update course: %w", err)
 	}
@@ -166,10 +169,21 @@ func (d *Database) UpdateCourse(ctx context.Context, course *spb.Course) error {
 }
 
 // DeleteCourse removes a course by course_id.
-func (d *Database) DeleteCourse(ctx context.Context, id string) error {
-	_, err := d.db.NewDelete().Model((*Course)(nil)).Where("course_id = ?", id).Exec(ctx)
+func (d *Database) DeleteCourse(ctx context.Context, courseID string) error {
+	_, err := d.db.NewDelete().Model((*Course)(nil)).Where("course_id = ?", courseID).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to delete course: %w", err)
+	}
+
+	// Delete all students and staff associated with the course.
+	_, err = d.db.NewDelete().Model((*CourseStudent)(nil)).Where("course_id = ?", courseID).Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to delete course students: %w", err)
+	}
+
+	_, err = d.db.NewDelete().Model((*CourseStaff)(nil)).Where("course_id = ?", courseID).Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to delete course staff: %w", err)
 	}
 
 	return nil
@@ -177,98 +191,200 @@ func (d *Database) DeleteCourse(ctx context.Context, id string) error {
 
 // AddStudentToCourse adds a student to a course.
 func (d *Database) AddStudentToCourse(ctx context.Context, courseID, studentID string) error {
-	course, err := d.GetCourse(ctx, courseID)
+	_, err := d.db.NewInsert().Model(&CourseStudent{
+		CourseID:  courseID,
+		StudentID: studentID,
+	}).Exec(ctx)
 	if err != nil {
-		return err
-	}
-	// Check if studentID already exists.
-	for _, v := range course.GetStudentsIds() {
-		if v == studentID {
-			return nil
-		}
+		return fmt.Errorf("failed to add student to course: %w", err)
 	}
 
-	course.StudentsIds = append(course.StudentsIds, studentID)
-
-	return d.UpdateCourse(ctx, course)
+	return nil
 }
 
 // RemoveStudentFromCourse removes a student from a course.
 func (d *Database) RemoveStudentFromCourse(ctx context.Context, courseID, studentID string) error {
-	course, err := d.GetCourse(ctx, courseID)
+	_, err := d.db.NewDelete().Model(
+		(*CourseStudent)(nil)).Where("course_id = ? AND student_id = ?", courseID, studentID).Exec(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to remove student from course: %w", err)
 	}
 
-	newArr := []string{}
-
-	for _, v := range course.GetStudentsIds() {
-		if v != studentID {
-			newArr = append(newArr, v)
-		}
-	}
-
-	course.StudentsIds = newArr
-
-	return d.UpdateCourse(ctx, course)
+	return nil
 }
 
 // AddStaffToCourse adds a staff member to a course.
 func (d *Database) AddStaffToCourse(ctx context.Context, courseID, staffID string) error {
-	course, err := d.GetCourse(ctx, courseID)
+	_, err := d.db.NewInsert().Model(&CourseStaff{
+		CourseID: courseID,
+		StaffID:  staffID,
+	}).Exec(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to add staff to course: %w", err)
 	}
 
-	for _, v := range course.GetStaffIds() {
-		if v == staffID {
-			return nil
-		}
-	}
-
-	course.StaffIds = append(course.StaffIds, staffID)
-
-	return d.UpdateCourse(ctx, course)
+	return nil
 }
 
 // RemoveStaffFromCourse removes a staff member from a course.
 func (d *Database) RemoveStaffFromCourse(ctx context.Context, courseID, staffID string) error {
-	course, err := d.GetCourse(ctx, courseID)
+	_, err := d.db.NewDelete().Model(
+		(*CourseStaff)(nil)).Where("course_id = ? AND staff_id = ?", courseID, staffID).Exec(ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to remove staff from course: %w", err)
 	}
 
-	newArr := []string{}
+	return nil
+}
 
-	for _, v := range course.GetStaffIds() {
-		if v != staffID {
-			newArr = append(newArr, v)
+// GetCourseStudents retrieves all students enrolled in a course.
+func (d *Database) GetCourseStudents(ctx context.Context, courseID string) ([]string, error) {
+	var studentIDs []string
+
+	// Query the database for student IDs enrolled in the course
+	err := d.db.NewSelect().
+		Model((*CourseStudent)(nil)). // Use a pointer to the model type
+		Column("student_id").
+		Where("course_id = ?", courseID).
+		Scan(ctx, &studentIDs) // Scan directly into the slice of strings
+	if err != nil {
+		return nil, fmt.Errorf("failed to get course students: %w", err)
+	}
+
+	return studentIDs, nil
+}
+
+// GetCourseStaff retrieves all staff members associated with a course.
+func (d *Database) GetCourseStaff(ctx context.Context, courseID string) ([]string, error) {
+	var staffIDs []string
+
+	err := d.db.NewSelect().
+		Model((*CourseStaff)(nil)).
+		Column("staff_id").
+		Where("course_id = ?", courseID).
+		Scan(ctx, &staffIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get course staff: %w", err)
+	}
+
+	return staffIDs, nil
+}
+
+// GetStudentCourses retrieves all courses a student is enrolled in.
+func (d *Database) GetStudentCourses(ctx context.Context, studentID string) ([]string, error) {
+	var courseIDs []string
+
+	err := d.db.NewSelect().
+		Model((*CourseStudent)(nil)).
+		Column("course_id").
+		Where("student_id = ?", studentID).
+		Scan(ctx, &courseIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get student courses: %w", err)
+	}
+
+	return courseIDs, nil
+}
+
+// GetStaffCourses retrieves all courses a staff member is associated with.
+func (d *Database) GetStaffCourses(ctx context.Context, staffID string) ([]string, error) {
+	var courseIDs []string
+
+	err := d.db.NewSelect().
+		Model((*CourseStaff)(nil)).
+		Column("course_id").
+		Where("staff_id = ?", staffID).
+		Scan(ctx, &courseIDs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get staff courses: %w", err)
+	}
+
+	return courseIDs, nil
+}
+
+// AddAnnouncement adds an announcement to a course.
+func (d *Database) AddAnnouncement(ctx context.Context, courseID, announcement string) error {
+	course := new(Course)
+	if err := d.db.NewSelect().Model(course).Where("course_id = ?", courseID).Scan(ctx); err != nil {
+		return fmt.Errorf("failed to get course: %w", err)
+	}
+
+	course.Announcements = append(course.Announcements, announcement)
+
+	_, err := d.db.NewUpdate().Model(course).Column("announcements").Where("course_id = ?", courseID).Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to add announcement: %w", err)
+	}
+
+	return nil
+}
+
+// GetAnnouncements retrieves all announcements for a course.
+func (d *Database) GetAnnouncements(ctx context.Context, courseID string) ([]string, error) {
+	course := new(Course)
+	if err := d.db.NewSelect().Model(course).Where("course_id = ?", courseID).Scan(ctx); err != nil {
+		return nil, fmt.Errorf("failed to get course: %w", err)
+	}
+
+	return course.Announcements, nil
+}
+
+// RemoveAnnouncement removes an announcement from a course.
+func (d *Database) RemoveAnnouncement(ctx context.Context, courseID, announcement string) error {
+	course := new(Course)
+	if err := d.db.NewSelect().Model(course).Where("course_id = ?", courseID).Scan(ctx); err != nil {
+		return fmt.Errorf("failed to get course: %w", err)
+	}
+
+	// Find the index of the announcement to remove.
+	index := -1
+
+	for i, a := range course.Announcements {
+		if a == announcement {
+			index = i
+			break
 		}
 	}
 
-	course.StaffIds = newArr
-
-	return d.UpdateCourse(ctx, course)
-}
-
-// UpdateCourseMaterial updates the course material for a given course.
-func (d *Database) UpdateCourseMaterial(ctx context.Context, courseID, material string) error {
-	course, err := d.GetCourse(ctx, courseID)
-	if err != nil {
-		return err
+	// Remove the announcement if found.
+	if index != -1 {
+		course.Announcements = append(course.Announcements[:index], course.Announcements[index+1:]...)
 	}
 
-	course.CourseMaterial = material
-
-	return d.UpdateCourse(ctx, course)
-}
-
-// GetCourseMaterial retrieves the course material for a given course.
-func (d *Database) GetCourseMaterial(ctx context.Context, courseID string) (string, error) {
-	course, err := d.GetCourse(ctx, courseID)
+	_, err := d.db.NewUpdate().Model(course).Column("announcements").Where("course_id = ?", courseID).Exec(ctx)
 	if err != nil {
-		return "", err
+		return fmt.Errorf("failed to remove announcement: %w", err)
 	}
 
-	return course.GetCourseMaterial(), nil
+	return nil
+}
+
+// UpdateAnnouncement updates an announcement in a course.
+func (d *Database) UpdateAnnouncement(ctx context.Context, courseID, oldAnnouncement, newAnnouncement string) error {
+	course := new(Course)
+	if err := d.db.NewSelect().Model(course).Where("course_id = ?", courseID).Scan(ctx); err != nil {
+		return fmt.Errorf("failed to get course: %w", err)
+	}
+
+	// Find the index of the announcement to update.
+	index := -1
+
+	for i, a := range course.Announcements {
+		if a == oldAnnouncement {
+			index = i
+			break
+		}
+	}
+
+	// Update the announcement if found.
+	if index != -1 {
+		course.Announcements[index] = newAnnouncement
+	}
+
+	_, err := d.db.NewUpdate().Model(course).Column("announcements").Where("course_id = ?", courseID).Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to update announcement: %w", err)
+	}
+
+	return nil
 }

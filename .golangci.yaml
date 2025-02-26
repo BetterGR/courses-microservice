@@ -1,12 +1,12 @@
 linters:
   enable-all: true
   disable:
-    - exportloopref  # Disables warnings about export loop references
     - nlreturn       # Disables "newline return" linter
     - godox          # Disables TODOs or comments checks
     - ireturn        # Disables checks for explicit return style
     - depguard
     - exhaustruct
+    - tenv
 
 run:
   issues-exclude-dirs:
