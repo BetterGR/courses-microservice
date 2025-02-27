@@ -106,6 +106,11 @@ run: proto fmt vet lint
 	@echo [RUN] Starting server...
 	@go run ./server $(ARGS)
 
+test: proto gomod fmt vet lint
+	@echo [TEST] Running tests...
+	@go test -v ./server/ | grep -v '=== RUN' | sed 's/--- PASS:/ [PASS]/' | sed 's/--- FAIL:/ [FAIL]/'
+	@echo [TEST] Tests completed.
+
 # Build Docker image
 docker-build: proto fmt vet lint build
 	@echo [DOCKER] Building Docker image $(DOCKER_IMAGE_NAME):$(DOCKER_TAG)... 

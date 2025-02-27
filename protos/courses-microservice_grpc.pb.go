@@ -33,9 +33,6 @@ const (
 	CoursesService_GetStaffCourses_FullMethodName              = "/courses.CoursesService/GetStaffCourses"
 	CoursesService_AddAnnouncementToCourse_FullMethodName      = "/courses.CoursesService/AddAnnouncementToCourse"
 	CoursesService_RemoveAnnouncementFromCourse_FullMethodName = "/courses.CoursesService/RemoveAnnouncementFromCourse"
-	CoursesService_UpdateAnnouncementInCourse_FullMethodName   = "/courses.CoursesService/UpdateAnnouncementInCourse"
-	CoursesService_UploadCourseMaterial_FullMethodName         = "/courses.CoursesService/UploadCourseMaterial"
-	CoursesService_GetCourseMaterial_FullMethodName            = "/courses.CoursesService/GetCourseMaterial"
 )
 
 // CoursesServiceClient is the client API for CoursesService service.
@@ -70,12 +67,6 @@ type CoursesServiceClient interface {
 	AddAnnouncementToCourse(ctx context.Context, in *AddAnnouncementRequest, opts ...grpc.CallOption) (*AddAnnouncementResponse, error)
 	// Remove an announcement from a course.
 	RemoveAnnouncementFromCourse(ctx context.Context, in *RemoveAnnouncementRequest, opts ...grpc.CallOption) (*RemoveAnnouncementResponse, error)
-	// Update an announcement in a course.
-	UpdateAnnouncementInCourse(ctx context.Context, in *UpdateAnnouncementRequest, opts ...grpc.CallOption) (*UpdateAnnouncementResponse, error)
-	// Upload course material.
-	UploadCourseMaterial(ctx context.Context, in *UploadCourseMaterialRequest, opts ...grpc.CallOption) (*UploadCourseMaterialResponse, error)
-	// Get course material.
-	GetCourseMaterial(ctx context.Context, in *GetCourseMaterialRequest, opts ...grpc.CallOption) (*GetCourseMaterialResponse, error)
 }
 
 type coursesServiceClient struct {
@@ -226,36 +217,6 @@ func (c *coursesServiceClient) RemoveAnnouncementFromCourse(ctx context.Context,
 	return out, nil
 }
 
-func (c *coursesServiceClient) UpdateAnnouncementInCourse(ctx context.Context, in *UpdateAnnouncementRequest, opts ...grpc.CallOption) (*UpdateAnnouncementResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UpdateAnnouncementResponse)
-	err := c.cc.Invoke(ctx, CoursesService_UpdateAnnouncementInCourse_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coursesServiceClient) UploadCourseMaterial(ctx context.Context, in *UploadCourseMaterialRequest, opts ...grpc.CallOption) (*UploadCourseMaterialResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(UploadCourseMaterialResponse)
-	err := c.cc.Invoke(ctx, CoursesService_UploadCourseMaterial_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *coursesServiceClient) GetCourseMaterial(ctx context.Context, in *GetCourseMaterialRequest, opts ...grpc.CallOption) (*GetCourseMaterialResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetCourseMaterialResponse)
-	err := c.cc.Invoke(ctx, CoursesService_GetCourseMaterial_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // CoursesServiceServer is the server API for CoursesService service.
 // All implementations must embed UnimplementedCoursesServiceServer
 // for forward compatibility.
@@ -288,12 +249,6 @@ type CoursesServiceServer interface {
 	AddAnnouncementToCourse(context.Context, *AddAnnouncementRequest) (*AddAnnouncementResponse, error)
 	// Remove an announcement from a course.
 	RemoveAnnouncementFromCourse(context.Context, *RemoveAnnouncementRequest) (*RemoveAnnouncementResponse, error)
-	// Update an announcement in a course.
-	UpdateAnnouncementInCourse(context.Context, *UpdateAnnouncementRequest) (*UpdateAnnouncementResponse, error)
-	// Upload course material.
-	UploadCourseMaterial(context.Context, *UploadCourseMaterialRequest) (*UploadCourseMaterialResponse, error)
-	// Get course material.
-	GetCourseMaterial(context.Context, *GetCourseMaterialRequest) (*GetCourseMaterialResponse, error)
 	mustEmbedUnimplementedCoursesServiceServer()
 }
 
@@ -345,15 +300,6 @@ func (UnimplementedCoursesServiceServer) AddAnnouncementToCourse(context.Context
 }
 func (UnimplementedCoursesServiceServer) RemoveAnnouncementFromCourse(context.Context, *RemoveAnnouncementRequest) (*RemoveAnnouncementResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveAnnouncementFromCourse not implemented")
-}
-func (UnimplementedCoursesServiceServer) UpdateAnnouncementInCourse(context.Context, *UpdateAnnouncementRequest) (*UpdateAnnouncementResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateAnnouncementInCourse not implemented")
-}
-func (UnimplementedCoursesServiceServer) UploadCourseMaterial(context.Context, *UploadCourseMaterialRequest) (*UploadCourseMaterialResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UploadCourseMaterial not implemented")
-}
-func (UnimplementedCoursesServiceServer) GetCourseMaterial(context.Context, *GetCourseMaterialRequest) (*GetCourseMaterialResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetCourseMaterial not implemented")
 }
 func (UnimplementedCoursesServiceServer) mustEmbedUnimplementedCoursesServiceServer() {}
 func (UnimplementedCoursesServiceServer) testEmbeddedByValue()                        {}
@@ -628,60 +574,6 @@ func _CoursesService_RemoveAnnouncementFromCourse_Handler(srv interface{}, ctx c
 	return interceptor(ctx, in, info, handler)
 }
 
-func _CoursesService_UpdateAnnouncementInCourse_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateAnnouncementRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoursesServiceServer).UpdateAnnouncementInCourse(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CoursesService_UpdateAnnouncementInCourse_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoursesServiceServer).UpdateAnnouncementInCourse(ctx, req.(*UpdateAnnouncementRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CoursesService_UploadCourseMaterial_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UploadCourseMaterialRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoursesServiceServer).UploadCourseMaterial(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CoursesService_UploadCourseMaterial_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoursesServiceServer).UploadCourseMaterial(ctx, req.(*UploadCourseMaterialRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _CoursesService_GetCourseMaterial_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetCourseMaterialRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(CoursesServiceServer).GetCourseMaterial(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: CoursesService_GetCourseMaterial_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CoursesServiceServer).GetCourseMaterial(ctx, req.(*GetCourseMaterialRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // CoursesService_ServiceDesc is the grpc.ServiceDesc for CoursesService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -744,18 +636,6 @@ var CoursesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveAnnouncementFromCourse",
 			Handler:    _CoursesService_RemoveAnnouncementFromCourse_Handler,
-		},
-		{
-			MethodName: "UpdateAnnouncementInCourse",
-			Handler:    _CoursesService_UpdateAnnouncementInCourse_Handler,
-		},
-		{
-			MethodName: "UploadCourseMaterial",
-			Handler:    _CoursesService_UploadCourseMaterial_Handler,
-		},
-		{
-			MethodName: "GetCourseMaterial",
-			Handler:    _CoursesService_GetCourseMaterial_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

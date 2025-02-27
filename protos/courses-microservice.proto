@@ -33,12 +33,6 @@ service CoursesService {
     rpc AddAnnouncementToCourse (AddAnnouncementRequest) returns (AddAnnouncementResponse);
     // Remove an announcement from a course.
     rpc RemoveAnnouncementFromCourse (RemoveAnnouncementRequest) returns (RemoveAnnouncementResponse);
-    // Update an announcement in a course.
-    rpc UpdateAnnouncementInCourse (UpdateAnnouncementRequest) returns (UpdateAnnouncementResponse);
-    // Upload course material.
-    rpc UploadCourseMaterial (UploadCourseMaterialRequest) returns (UploadCourseMaterialResponse);
-    // Get course material.
-    rpc GetCourseMaterial (GetCourseMaterialRequest) returns (GetCourseMaterialResponse);
 }
 
 // Request message for getting a course.
@@ -192,46 +186,10 @@ message RemoveAnnouncementRequest {
 message RemoveAnnouncementResponse {
 }
 
-// Request message for updating an announcement in a course.
-message UpdateAnnouncementRequest {
-    string token = 1;
-    string courseId = 2;
-    string announcementId = 3;
-    string updatedAnnouncement = 4;
-}
-
-// Response message for updating an announcement in a course.
-message UpdateAnnouncementResponse {
-}
-
-// Request message for uploading course material.
-message UploadCourseMaterialRequest {
-    string token = 1;
-    string courseId = 2;
-    string courseMaterial = 3;
-}
-
-// Response message for uploading course material.
-message UploadCourseMaterialResponse {
-}
-
-// Request message for getting course material.
-message GetCourseMaterialRequest {
-    string token = 1;
-    string courseId = 2;
-}
-
-// Response message for getting course material.
-message GetCourseMaterialResponse {
-    string courseMaterial = 1;
-}
-
 // Message representing a course.
 message Course {
     string courseId = 1;
     string courseName = 2;
     string semester = 3;
-    string courseMaterial = 4; // out of scope for now
-    string description = 5;
-    repeated string announcements = 6;
+    string description = 4;
 }

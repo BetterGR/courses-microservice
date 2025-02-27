@@ -29,6 +29,21 @@ type CoursesServer struct {
 	db *Database
 	// throws unimplemented error
 	cpb.UnimplementedCoursesServiceServer
+	Claims ms.Claims
+}
+
+// VerifyToken returns the injected Claims instead of the default.
+func (s *CoursesServer) VerifyToken(ctx context.Context, token string) error {
+	if s.Claims != nil {
+		return nil
+	}
+
+	// Default behavior.
+	if _, err := s.BaseServiceServer.VerifyToken(ctx, token); err != nil {
+		return fmt.Errorf("failed to verify token: %w", err)
+	}
+
+	return nil
 }
 
 // initCoursesMicroserviceServer initializes the CoursesServer.
@@ -52,7 +67,7 @@ func initCoursesMicroserviceServer() (*CoursesServer, error) {
 
 // GetCourse retrieves a course by its ID.
 func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest) (*cpb.GetCourseResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -66,12 +81,10 @@ func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest
 	}
 
 	return &cpb.GetCourseResponse{Course: &cpb.Course{
-		CourseId:       course.GetCourseId(),
-		CourseName:     course.GetCourseName(),
-		Description:    course.GetDescription(),
-		Semester:       course.GetSemester(),
-		CourseMaterial: course.GetCourseMaterial(),
-		Announcements:  course.GetAnnouncements(),
+		CourseId:    course.GetCourseId(),
+		CourseName:  course.GetCourseName(),
+		Description: course.GetDescription(),
+		Semester:    course.GetSemester(),
 	}}, nil
 }
 
@@ -80,7 +93,7 @@ func (s *CoursesServer) CreateCourse(
 	ctx context.Context,
 	req *cpb.CreateCourseRequest,
 ) (*cpb.CreateCourseResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -89,12 +102,10 @@ func (s *CoursesServer) CreateCourse(
 	logger.V(logLevelDebug).Info("Received CreateCourse request", "courseName", req.GetCourse().GetCourseName())
 
 	if err := s.db.AddCourse(ctx, &cpb.Course{
-		CourseId:       req.GetCourse().GetCourseId(),
-		CourseName:     req.GetCourse().GetCourseName(),
-		Semester:       req.GetCourse().GetSemester(),
-		Description:    req.GetCourse().GetDescription(),
-		CourseMaterial: "",
-		Announcements:  []string{},
+		CourseId:    req.GetCourse().GetCourseId(),
+		CourseName:  req.GetCourse().GetCourseName(),
+		Semester:    req.GetCourse().GetSemester(),
+		Description: req.GetCourse().GetDescription(),
 	}); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to add course: %v", err)
 	}
@@ -107,7 +118,7 @@ func (s *CoursesServer) UpdateCourse(
 	ctx context.Context,
 	req *cpb.UpdateCourseRequest,
 ) (*cpb.UpdateCourseResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -123,7 +134,6 @@ func (s *CoursesServer) UpdateCourse(
 	course.CourseName = req.GetCourse().GetCourseName()
 	course.Semester = req.GetCourse().GetSemester()
 	course.Description = req.GetCourse().GetDescription()
-	course.CourseMaterial = req.GetCourse().GetCourseMaterial()
 
 	if err = s.db.UpdateCourse(ctx, course); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update course: %v", err)
@@ -137,7 +147,7 @@ func (s *CoursesServer) DeleteCourse(
 	ctx context.Context,
 	req *cpb.DeleteCourseRequest,
 ) (*cpb.DeleteCourseResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -157,7 +167,7 @@ func (s *CoursesServer) AddStudentToCourse(
 	ctx context.Context,
 	req *cpb.AddStudentRequest,
 ) (*cpb.AddStudentResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -178,7 +188,7 @@ func (s *CoursesServer) RemoveStudentFromCourse(
 	ctx context.Context,
 	req *cpb.RemoveStudentRequest,
 ) (*cpb.RemoveStudentResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -196,7 +206,7 @@ func (s *CoursesServer) RemoveStudentFromCourse(
 
 // AddStaffToCourse adds a staff member to a course.
 func (s *CoursesServer) AddStaffToCourse(ctx context.Context, req *cpb.AddStaffRequest) (*cpb.AddStaffResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -217,7 +227,7 @@ func (s *CoursesServer) RemoveStaffFromCourse(
 	ctx context.Context,
 	req *cpb.RemoveStaffRequest,
 ) (*cpb.RemoveStaffResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -238,7 +248,7 @@ func (s *CoursesServer) GetCourseStudents(
 	ctx context.Context,
 	req *cpb.GetCourseStudentsRequest,
 ) (*cpb.GetCourseStudentsResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -258,7 +268,7 @@ func (s *CoursesServer) GetCourseStudents(
 func (s *CoursesServer) GetCourseStaff(ctx context.Context,
 	req *cpb.GetCourseStaffRequest,
 ) (*cpb.GetCourseStaffResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -278,7 +288,7 @@ func (s *CoursesServer) GetCourseStaff(ctx context.Context,
 func (s *CoursesServer) GetStudentCourses(ctx context.Context,
 	req *cpb.GetStudentCoursesRequest,
 ) (*cpb.GetStudentCoursesResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -298,7 +308,7 @@ func (s *CoursesServer) GetStudentCourses(ctx context.Context,
 func (s *CoursesServer) GetStaffCourses(ctx context.Context,
 	req *cpb.GetStaffCoursesRequest,
 ) (*cpb.GetStaffCoursesResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -318,7 +328,7 @@ func (s *CoursesServer) GetStaffCourses(ctx context.Context,
 func (s *CoursesServer) AddAnnouncementToCourse(ctx context.Context,
 	req *cpb.AddAnnouncementRequest,
 ) (*cpb.AddAnnouncementResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -337,7 +347,7 @@ func (s *CoursesServer) AddAnnouncementToCourse(ctx context.Context,
 func (s *CoursesServer) RemoveAnnouncementFromCourse(ctx context.Context,
 	req *cpb.RemoveAnnouncementRequest,
 ) (*cpb.RemoveAnnouncementResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
 	}
@@ -351,27 +361,6 @@ func (s *CoursesServer) RemoveAnnouncementFromCourse(ctx context.Context,
 	}
 
 	return &cpb.RemoveAnnouncementResponse{}, nil
-}
-
-// UpdateAnnouncementInCourse updates an announcement in a course.
-func (s *CoursesServer) UpdateAnnouncementInCourse(ctx context.Context,
-	req *cpb.UpdateAnnouncementRequest,
-) (*cpb.UpdateAnnouncementResponse, error) {
-	if _, err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-		return nil, fmt.Errorf("authentication failed: %w",
-			status.Error(codes.Unauthenticated, err.Error()))
-	}
-
-	logger := klog.FromContext(ctx)
-	logger.V(logLevelDebug).Info("Received UpdateAnnouncementInCourse request",
-		"courseId", req.GetCourseId(), "announcementId", req.GetAnnouncementId())
-
-	if err := s.db.UpdateAnnouncement(ctx, req.GetCourseId(),
-		req.GetAnnouncementId(), req.GetUpdatedAnnouncement()); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to update announcement in course: %v", err)
-	}
-
-	return &cpb.UpdateAnnouncementResponse{}, nil
 }
 
 func main() {
@@ -398,7 +387,7 @@ func main() {
 		klog.Fatalf("Failed to listen: %v", err)
 	}
 
-	klog.Info("Starting CoursesServer on port: ", address)
+	klog.V(logLevelDebug).Info("Starting CoursesServer on port: ", address)
 	// create a grpc CoursesServer
 	grpcServer := grpc.NewServer()
 	cpb.RegisterCoursesServiceServer(grpcServer, server)

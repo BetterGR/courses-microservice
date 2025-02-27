@@ -7,6 +7,7 @@ linters:
     - depguard
     - exhaustruct
     - tenv
+    - paralleltest   # Disables parallel test check
 
 run:
   issues-exclude-dirs:
