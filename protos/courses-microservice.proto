@@ -31,6 +31,8 @@ service CoursesService {
     rpc GetStaffCourses (GetStaffCoursesRequest) returns (GetStaffCoursesResponse);
     // Add an announcement to a course.
     rpc AddAnnouncementToCourse (AddAnnouncementRequest) returns (AddAnnouncementResponse);
+    // Get all announcements in a course.
+    rpc GetCourseAnnouncements (GetCourseAnnouncementsRequest) returns (GetCourseAnnouncementsResponse);
     // Remove an announcement from a course.
     rpc RemoveAnnouncementFromCourse (RemoveAnnouncementRequest) returns (RemoveAnnouncementResponse);
 }
@@ -38,7 +40,7 @@ service CoursesService {
 // Request message for getting a course.
 message GetCourseRequest {
     string token = 1;
-    string courseId = 2;
+    string courseID = 2;
 }
 
 // Response message for getting a course.
@@ -69,7 +71,7 @@ message UpdateCourseResponse {
 // Request message for deleting a course.
 message DeleteCourseRequest {
     string token = 1;
-    string courseId = 2; 
+    string courseID = 2; 
 }
 
 // Response message for deleting a course.
@@ -79,8 +81,8 @@ message DeleteCourseResponse {
 // Request message for adding a student to a course.
 message AddStudentRequest {
     string token = 1;
-    string courseId = 2;
-    string studentId = 3;
+    string courseID = 2;
+    string studentID = 3;
 }
 
 // Response message for adding a student to a course.
@@ -90,8 +92,8 @@ message AddStudentResponse {
 // Request message for removing a student from a course.
 message RemoveStudentRequest {
     string token = 1;
-    string courseId = 2;
-    string studentId = 3;
+    string courseID = 2;
+    string studentID = 3;
 }
 
 // Response message for removing a student from a course.
@@ -101,8 +103,8 @@ message RemoveStudentResponse {
 // Request message for adding a staff member to a course.
 message AddStaffRequest {
     string token = 1;
-    string courseId = 2;
-    string staffId = 3;
+    string courseID = 2;
+    string staffID = 3;
 }
 
 // Response message for adding a staff member to a course.
@@ -112,8 +114,8 @@ message AddStaffResponse {
 // Request message for removing a staff member from a course.
 message RemoveStaffRequest {
     string token = 1;
-    string courseId = 2;
-    string staffId = 3;
+    string courseID = 2;
+    string staffID = 3;
 }
 
 // Response message for removing a staff member from a course.
@@ -123,63 +125,75 @@ message RemoveStaffResponse {
 // Request message for getting all students in a course.
 message GetCourseStudentsRequest {
     string token = 1;
-    string courseId = 2;
+    string courseID = 2;
 }
 
 // Response message for getting all students in a course.
 message GetCourseStudentsResponse {
-    repeated string studentIds = 1;
+    repeated string studentsIDs = 1;
 }
 
 // Request message for getting all staff members in a course.
 message GetCourseStaffRequest {
     string token = 1;
-    string courseId = 2;
+    string courseID = 2;
 }
 
 // Response message for getting all staff members in a course.
 message GetCourseStaffResponse {
-    repeated string staffIds = 1;
+    repeated string staffIDs = 1;
 }
 
 // Request message for getting a student's courses.
 message GetStudentCoursesRequest {
     string token = 1;
-    string studentId = 2;
+    string studentID = 2;
 }
 
 // Response message for getting a student's courses.
 message GetStudentCoursesResponse {
-    repeated string coursesIds = 1;
+    repeated string coursesIDs = 1;
 }
 
 // Request message for getting a staff's courses.
 message GetStaffCoursesRequest {
     string token = 1;
-    string staffId = 2;
+    string staffID = 2;
 }
 
 // Response message for getting a staff's courses.
 message GetStaffCoursesResponse {
-    repeated string coursesIds = 1;
+    repeated string coursesIDs = 1;
 }
 
 // Request message for adding an announcement to a course.
 message AddAnnouncementRequest {
     string token = 1;
-    string courseId = 2;
-    string announcement = 3;
+    string courseID = 2;
+    string announcementID = 3;
+    string announcement = 4;
 }
 
 // Response message for adding an announcement to a course.
 message AddAnnouncementResponse {
 }
 
+// Request message for getting all announcements in a course.
+message GetCourseAnnouncementsRequest {
+    string token = 1;
+    string courseID = 2;
+}
+
+// Response message for getting all announcements in a course.
+message GetCourseAnnouncementsResponse {
+    repeated string announcements = 1;
+}
+
 // Request message for removing an announcement from a course.
 message RemoveAnnouncementRequest {
     string token = 1;
-    string courseId = 2;
-    string announcementId = 3;
+    string courseID = 2;
+    string announcementID = 3;
 }
 
 // Response message for removing an announcement from a course.
@@ -188,7 +202,7 @@ message RemoveAnnouncementResponse {
 
 // Message representing a course.
 message Course {
-    string courseId = 1;
+    string courseID = 1;
     string courseName = 2;
     string semester = 3;
     string description = 4;

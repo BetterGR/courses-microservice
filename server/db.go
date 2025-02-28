@@ -148,7 +148,7 @@ func (d *Database) AddCourse(ctx context.Context, course *spb.Course) error {
 	}
 
 	_, err := d.db.NewInsert().Model(&Course{
-		CourseID:   course.GetCourseId(),
+		CourseID:   course.GetCourseID(),
 		CourseName: course.GetCourseName(),
 		Semester:   course.GetSemester(),
 	}).Exec(ctx)
@@ -171,7 +171,7 @@ func (d *Database) GetCourse(ctx context.Context, courseID string) (*spb.Course,
 	}
 
 	return &spb.Course{
-		CourseId:    course.CourseID,
+		CourseID:    course.CourseID,
 		CourseName:  course.CourseName,
 		Semester:    course.Semester,
 		Description: course.Description,
@@ -185,11 +185,11 @@ func (d *Database) UpdateCourse(ctx context.Context, course *spb.Course) error {
 	}
 
 	res, err := d.db.NewUpdate().Model(&Course{
-		CourseID:    course.GetCourseId(),
+		CourseID:    course.GetCourseID(),
 		CourseName:  course.GetCourseName(),
 		Semester:    course.GetSemester(),
 		Description: course.GetDescription(),
-	}).Where("course_id = ?", course.GetCourseId()).Exec(ctx)
+	}).Where("course_id = ?", course.GetCourseID()).Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to update course: %w", err)
 	}
@@ -240,13 +240,7 @@ func (d *Database) AddStudentToCourse(ctx context.Context, courseID, studentID s
 		return fmt.Errorf("%w", ErrStudentIDEmpty)
 	}
 
-	// Ensure the course exists before adding the student.
-	_, err := d.GetCourse(ctx, courseID)
-	if err != nil {
-		return fmt.Errorf("failed to add student to course: %w", err)
-	}
-
-	_, err = d.db.NewInsert().Model(&CourseStudent{
+	_, err := d.db.NewInsert().Model(&CourseStudent{
 		CourseID:  courseID,
 		StudentID: studentID,
 	}).Exec(ctx)
@@ -290,13 +284,7 @@ func (d *Database) AddStaffToCourse(ctx context.Context, courseID, staffID strin
 		return fmt.Errorf("%w", ErrStaffIDEmpty)
 	}
 
-	// Ensure the course exists before adding the staff member.
-	_, err := d.GetCourse(ctx, courseID)
-	if err != nil {
-		return fmt.Errorf("failed to add staff to course: %w", err)
-	}
-
-	_, err = d.db.NewInsert().Model(&CourseStaff{
+	_, err := d.db.NewInsert().Model(&CourseStaff{
 		CourseID: courseID,
 		StaffID:  staffID,
 	}).Exec(ctx)
@@ -421,13 +409,7 @@ func (d *Database) AddAnnouncement(ctx context.Context, courseID, announcement s
 		return fmt.Errorf("%w", ErrAnnouncementEmpty)
 	}
 
-	// Ensure the course exists before adding the announcement.
-	_, err := d.GetCourse(ctx, courseID)
-	if err != nil {
-		return fmt.Errorf("failed to add announcement: %w", err)
-	}
-
-	_, err = d.db.NewInsert().Model(&Announcement{
+	_, err := d.db.NewInsert().Model(&Announcement{
 		CourseID:    courseID,
 		Title:       announcement,
 		Description: announcement,
@@ -475,6 +457,38 @@ func (d *Database) RemoveAnnouncement(ctx context.Context, courseID, announcemen
 		Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to remove announcement: %w", err)
+	}
+
+	if num, _ := res.RowsAffected(); num == 0 {
+		return fmt.Errorf("%w", ErrCourseNotFound)
+	}
+
+	return nil
+}
+
+// UpdateAnnouncement updates an announcement in a course.
+func (d *Database) UpdateAnnouncement(ctx context.Context, courseID, oldAnnouncement, newAnnouncement string) error {
+	if courseID == "" {
+		return fmt.Errorf("%w", ErrCourseIDEmpty)
+	}
+
+	if oldAnnouncement == "" {
+		return fmt.Errorf("%w", ErrAnnouncementEmpty)
+	}
+
+	if newAnnouncement == "" {
+		return fmt.Errorf("%w", ErrAnnouncementEmpty)
+	}
+
+	res, err := d.db.NewUpdate().
+		Model(&Announcement{
+			Title:       newAnnouncement,
+			Description: newAnnouncement,
+		}).
+		Where("course_id = ? AND title = ?", courseID, oldAnnouncement).
+		Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to update announcement: %w", err)
 	}
 
 	if num, _ := res.RowsAffected(); num == 0 {

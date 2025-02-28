@@ -74,7 +74,7 @@ func TestMain(m *testing.M) {
 
 func createTestCourse() *cpb.Course {
 	return &cpb.Course{
-		CourseId:    uuid.New().String(),
+		CourseID:    uuid.New().String(),
 		CourseName:  "Test Course",
 		Semester:    "Fall 2023",
 		Description: "This is a test course.",
@@ -132,7 +132,7 @@ func createAndCleanupCourse(t *testing.T, client cpb.CoursesServiceClient) *cpb.
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		_, _ = client.DeleteCourse(t.Context(), &cpb.DeleteCourseRequest{CourseId: course.GetCourseId(), Token: "test-token"})
+		_, _ = client.DeleteCourse(t.Context(), &cpb.DeleteCourseRequest{CourseID: course.GetCourseID(), Token: "test-token"})
 	})
 
 	return course
@@ -142,15 +142,15 @@ func TestGetCourseFound(t *testing.T) {
 	client := setupClient(t)
 	course := createAndCleanupCourse(t, client)
 
-	req := &cpb.GetCourseRequest{CourseId: course.GetCourseId(), Token: "test-token"}
+	req := &cpb.GetCourseRequest{CourseID: course.GetCourseID(), Token: "test-token"}
 	resp, err := client.GetCourse(t.Context(), req)
 	require.NoError(t, err)
-	assert.Equal(t, course.GetCourseId(), resp.GetCourse().GetCourseId())
+	assert.Equal(t, course.GetCourseID(), resp.GetCourse().GetCourseID())
 }
 
 func TestGetCourseNotFound(t *testing.T) {
 	client := setupClient(t)
-	req := &cpb.GetCourseRequest{CourseId: "non-existent-id", Token: "test-token"}
+	req := &cpb.GetCourseRequest{CourseID: "non-existent-id", Token: "test-token"}
 
 	_, err := client.GetCourse(t.Context(), req)
 	assert.Error(t, err)
@@ -188,7 +188,7 @@ func TestUpdateCourseSuccessful(t *testing.T) {
 func TestUpdateCourseFailureForNonExistentCourse(t *testing.T) {
 	client := setupClient(t)
 	course := createTestCourse()
-	course.CourseId = "non-existent-id"
+	course.CourseID = "non-existent-id"
 	req := &cpb.UpdateCourseRequest{Course: course, Token: "test-token"}
 
 	_, err := client.UpdateCourse(t.Context(), req)
@@ -199,14 +199,14 @@ func TestDeleteCourseSuccessful(t *testing.T) {
 	client := setupClient(t)
 	course := createAndCleanupCourse(t, client)
 
-	req := &cpb.DeleteCourseRequest{CourseId: course.GetCourseId(), Token: "test-token"}
+	req := &cpb.DeleteCourseRequest{CourseID: course.GetCourseID(), Token: "test-token"}
 	_, err := client.DeleteCourse(t.Context(), req)
 	assert.NoError(t, err)
 }
 
 func TestDeleteCourseFailureForNonExistentCourse(t *testing.T) {
 	client := setupClient(t)
-	req := &cpb.DeleteCourseRequest{CourseId: "non-existent-id", Token: "test-token"}
+	req := &cpb.DeleteCourseRequest{CourseID: "non-existent-id", Token: "test-token"}
 
 	_, err := client.DeleteCourse(t.Context(), req)
 	assert.Error(t, err)
@@ -216,7 +216,7 @@ func TestAddStudentToCourse(t *testing.T) {
 	client := setupClient(t)
 	course := createAndCleanupCourse(t, client)
 
-	req := &cpb.AddStudentRequest{CourseId: course.GetCourseId(), StudentId: "student-1", Token: "test-token"}
+	req := &cpb.AddStudentRequest{CourseID: course.GetCourseID(), StudentID: "student-1", Token: "test-token"}
 	_, err := client.AddStudentToCourse(t.Context(), req)
 	require.NoError(t, err)
 }
@@ -226,10 +226,10 @@ func TestRemoveStudentFromCourse(t *testing.T) {
 	course := createAndCleanupCourse(t, client)
 
 	_, err := client.AddStudentToCourse(t.Context(),
-		&cpb.AddStudentRequest{CourseId: course.GetCourseId(), StudentId: "student-1", Token: "test-token"})
+		&cpb.AddStudentRequest{CourseID: course.GetCourseID(), StudentID: "student-1", Token: "test-token"})
 	require.NoError(t, err)
 
-	req := &cpb.RemoveStudentRequest{CourseId: course.GetCourseId(), StudentId: "student-1", Token: "test-token"}
+	req := &cpb.RemoveStudentRequest{CourseID: course.GetCourseID(), StudentID: "student-1", Token: "test-token"}
 	_, err = client.RemoveStudentFromCourse(t.Context(), req)
 	require.NoError(t, err)
 }
@@ -238,7 +238,7 @@ func TestAddStaffToCourse(t *testing.T) {
 	client := setupClient(t)
 	course := createAndCleanupCourse(t, client)
 
-	req := &cpb.AddStaffRequest{CourseId: course.GetCourseId(), StaffId: "staff-1", Token: "test-token"}
+	req := &cpb.AddStaffRequest{CourseID: course.GetCourseID(), StaffID: "staff-1", Token: "test-token"}
 	_, err := client.AddStaffToCourse(t.Context(), req)
 	require.NoError(t, err)
 }
@@ -248,10 +248,10 @@ func TestRemoveStaffFromCourse(t *testing.T) {
 	course := createAndCleanupCourse(t, client)
 
 	_, err := client.AddStaffToCourse(t.Context(),
-		&cpb.AddStaffRequest{CourseId: course.GetCourseId(), StaffId: "staff-1", Token: "test-token"})
+		&cpb.AddStaffRequest{CourseID: course.GetCourseID(), StaffID: "staff-1", Token: "test-token"})
 	require.NoError(t, err)
 
-	req := &cpb.RemoveStaffRequest{CourseId: course.GetCourseId(), StaffId: "staff-1", Token: "test-token"}
+	req := &cpb.RemoveStaffRequest{CourseID: course.GetCourseID(), StaffID: "staff-1", Token: "test-token"}
 	_, err = client.RemoveStaffFromCourse(t.Context(), req)
 	require.NoError(t, err)
 }
@@ -261,13 +261,13 @@ func TestGetCourseStudents(t *testing.T) {
 	course := createAndCleanupCourse(t, client)
 
 	_, err := client.AddStudentToCourse(t.Context(),
-		&cpb.AddStudentRequest{CourseId: course.GetCourseId(), StudentId: "student-1", Token: "test-token"})
+		&cpb.AddStudentRequest{CourseID: course.GetCourseID(), StudentID: "student-1", Token: "test-token"})
 	require.NoError(t, err)
 
-	req := &cpb.GetCourseStudentsRequest{CourseId: course.GetCourseId(), Token: "test-token"}
+	req := &cpb.GetCourseStudentsRequest{CourseID: course.GetCourseID(), Token: "test-token"}
 	resp, err := client.GetCourseStudents(t.Context(), req)
 	require.NoError(t, err)
-	assert.Contains(t, resp.GetStudentIds(), "student-1")
+	assert.Contains(t, resp.GetStudentsIDs(), "student-1")
 }
 
 func TestGetCourseStaff(t *testing.T) {
@@ -275,13 +275,13 @@ func TestGetCourseStaff(t *testing.T) {
 	course := createAndCleanupCourse(t, client)
 
 	_, err := client.AddStaffToCourse(t.Context(),
-		&cpb.AddStaffRequest{CourseId: course.GetCourseId(), StaffId: "staff-1", Token: "test-token"})
+		&cpb.AddStaffRequest{CourseID: course.GetCourseID(), StaffID: "staff-1", Token: "test-token"})
 	require.NoError(t, err)
 
-	req := &cpb.GetCourseStaffRequest{CourseId: course.GetCourseId(), Token: "test-token"}
+	req := &cpb.GetCourseStaffRequest{CourseID: course.GetCourseID(), Token: "test-token"}
 	resp, err := client.GetCourseStaff(t.Context(), req)
 	require.NoError(t, err)
-	assert.Contains(t, resp.GetStaffIds(), "staff-1")
+	assert.Contains(t, resp.GetStaffIDs(), "staff-1")
 }
 
 func TestGetStudentCourses(t *testing.T) {
@@ -289,13 +289,13 @@ func TestGetStudentCourses(t *testing.T) {
 	course := createAndCleanupCourse(t, client)
 
 	_, err := client.AddStudentToCourse(t.Context(),
-		&cpb.AddStudentRequest{CourseId: course.GetCourseId(), StudentId: "student-1", Token: "test-token"})
+		&cpb.AddStudentRequest{CourseID: course.GetCourseID(), StudentID: "student-1", Token: "test-token"})
 	require.NoError(t, err)
 
-	req := &cpb.GetStudentCoursesRequest{StudentId: "student-1", Token: "test-token"}
+	req := &cpb.GetStudentCoursesRequest{StudentID: "student-1", Token: "test-token"}
 	resp, err := client.GetStudentCourses(t.Context(), req)
 	require.NoError(t, err)
-	assert.Contains(t, resp.GetCoursesIds(), course.GetCourseId())
+	assert.Contains(t, resp.GetCoursesIDs(), course.GetCourseID())
 }
 
 func TestGetStaffCourses(t *testing.T) {
@@ -303,13 +303,13 @@ func TestGetStaffCourses(t *testing.T) {
 	course := createAndCleanupCourse(t, client)
 
 	_, err := client.AddStaffToCourse(t.Context(),
-		&cpb.AddStaffRequest{CourseId: course.GetCourseId(), StaffId: "staff-1", Token: "test-token"})
+		&cpb.AddStaffRequest{CourseID: course.GetCourseID(), StaffID: "staff-1", Token: "test-token"})
 	require.NoError(t, err)
 
-	req := &cpb.GetStaffCoursesRequest{StaffId: "staff-1", Token: "test-token"}
+	req := &cpb.GetStaffCoursesRequest{StaffID: "staff-1", Token: "test-token"}
 	resp, err := client.GetStaffCourses(t.Context(), req)
 	require.NoError(t, err)
-	assert.Contains(t, resp.GetCoursesIds(), course.GetCourseId())
+	assert.Contains(t, resp.GetCoursesIDs(), course.GetCourseID())
 }
 
 func TestAddAnnouncementToCourse(t *testing.T) {
@@ -317,11 +317,25 @@ func TestAddAnnouncementToCourse(t *testing.T) {
 	course := createAndCleanupCourse(t, client)
 
 	req := &cpb.AddAnnouncementRequest{
-		CourseId:     course.GetCourseId(),
+		CourseID:     course.GetCourseID(),
 		Announcement: "New Announcement", Token: "test-token",
 	}
 	_, err := client.AddAnnouncementToCourse(t.Context(), req)
 	require.NoError(t, err)
+}
+
+func TestGetCourseAnnouncements(t *testing.T) {
+	client := setupClient(t)
+	course := createAndCleanupCourse(t, client)
+
+	_, err := client.AddAnnouncementToCourse(t.Context(),
+		&cpb.AddAnnouncementRequest{CourseID: course.GetCourseID(), Announcement: "New Announcement", Token: "test-token"})
+	require.NoError(t, err)
+
+	req := &cpb.GetCourseAnnouncementsRequest{CourseID: course.GetCourseID(), Token: "test-token"}
+	resp, err := client.GetCourseAnnouncements(t.Context(), req)
+	require.NoError(t, err)
+	assert.Contains(t, resp.GetAnnouncements(), "New Announcement")
 }
 
 func TestRemoveAnnouncementFromCourse(t *testing.T) {
@@ -329,12 +343,12 @@ func TestRemoveAnnouncementFromCourse(t *testing.T) {
 	course := createAndCleanupCourse(t, client)
 
 	_, err := client.AddAnnouncementToCourse(t.Context(),
-		&cpb.AddAnnouncementRequest{CourseId: course.GetCourseId(), Announcement: "New Announcement", Token: "test-token"})
+		&cpb.AddAnnouncementRequest{CourseID: course.GetCourseID(), Announcement: "New Announcement", Token: "test-token"})
 	require.NoError(t, err)
 
 	req := &cpb.RemoveAnnouncementRequest{
-		CourseId:       course.GetCourseId(),
-		AnnouncementId: "New Announcement", Token: "test-token",
+		CourseID:       course.GetCourseID(),
+		AnnouncementID: "New Announcement", Token: "test-token",
 	}
 	_, err = client.RemoveAnnouncementFromCourse(t.Context(), req)
 	require.NoError(t, err)
