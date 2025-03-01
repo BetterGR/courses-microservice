@@ -56,6 +56,7 @@ message CreateCourseRequest {
 
 // Response message for creating a new course.
 message CreateCourseResponse {
+    Course course = 1;
 }
 
 // Request message for updating a course.
@@ -66,6 +67,7 @@ message UpdateCourseRequest {
 
 // Response message for updating a course.
 message UpdateCourseResponse {
+    Course course = 1;
 }
 
 // Request message for deleting a course.

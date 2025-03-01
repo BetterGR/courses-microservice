@@ -161,8 +161,9 @@ func TestCreateCourseSuccessful(t *testing.T) {
 	course := createTestCourse()
 	req := &cpb.CreateCourseRequest{Course: course, Token: "test-token"}
 
-	_, err := client.CreateCourse(t.Context(), req)
+	resp, err := client.CreateCourse(t.Context(), req)
 	require.NoError(t, err)
+	assert.Equal(t, course.GetCourseID(), resp.GetCourse().GetCourseID())
 }
 
 func TestCreateCourseFailureOnDuplicate(t *testing.T) {
@@ -181,8 +182,10 @@ func TestUpdateCourseSuccessful(t *testing.T) {
 	course.CourseName = "Updated Course Name"
 	req := &cpb.UpdateCourseRequest{Course: course, Token: "test-token"}
 
-	_, err := client.UpdateCourse(t.Context(), req)
+	resp, err := client.UpdateCourse(t.Context(), req)
 	require.NoError(t, err)
+	assert.Equal(t, course.GetCourseID(), resp.GetCourse().GetCourseID())
+	assert.Equal(t, course.GetCourseName(), resp.GetCourse().GetCourseName())
 }
 
 func TestUpdateCourseFailureForNonExistentCourse(t *testing.T) {

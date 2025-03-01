@@ -142,25 +142,31 @@ type CourseStaff struct {
 }
 
 // AddCourse inserts a new course into the database using the proto message.
-func (d *Database) AddCourse(ctx context.Context, course *spb.Course) error {
+func (d *Database) AddCourse(ctx context.Context, course *spb.Course) (*Course, error) {
 	if course == nil {
-		return fmt.Errorf("%w", ErrCourseNil)
+		return nil, fmt.Errorf("%w", ErrCourseNil)
 	}
 
-	_, err := d.db.NewInsert().Model(&Course{
+	if course.GetCourseID() == "" {
+		return nil, fmt.Errorf("%w", ErrCourseIDEmpty)
+	}
+
+	newCourse := &Course{
 		CourseID:   course.GetCourseID(),
 		CourseName: course.GetCourseName(),
 		Semester:   course.GetSemester(),
-	}).Exec(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to add course: %w", err)
 	}
 
-	return nil
+	_, err := d.db.NewInsert().Model(newCourse).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to add course: %w", err)
+	}
+
+	return newCourse, nil
 }
 
 // GetCourse retrieves a course by its course_id and returns the proto message.
-func (d *Database) GetCourse(ctx context.Context, courseID string) (*spb.Course, error) {
+func (d *Database) GetCourse(ctx context.Context, courseID string) (*Course, error) {
 	if courseID == "" {
 		return nil, fmt.Errorf("%w", ErrCourseIDEmpty)
 	}
@@ -170,35 +176,42 @@ func (d *Database) GetCourse(ctx context.Context, courseID string) (*spb.Course,
 		return nil, fmt.Errorf("failed to get course: %w", err)
 	}
 
-	return &spb.Course{
-		CourseID:    course.CourseID,
-		CourseName:  course.CourseName,
-		Semester:    course.Semester,
-		Description: course.Description,
-	}, nil
+	return course, nil
 }
 
 // UpdateCourse updates an existing course in the database using the proto message.
-func (d *Database) UpdateCourse(ctx context.Context, course *spb.Course) error {
+func (d *Database) UpdateCourse(ctx context.Context, course *spb.Course) (*Course, error) {
 	if course == nil {
-		return fmt.Errorf("%w", ErrCourseNil)
+		return nil, fmt.Errorf("%w", ErrCourseNil)
 	}
 
-	res, err := d.db.NewUpdate().Model(&Course{
-		CourseID:    course.GetCourseID(),
-		CourseName:  course.GetCourseName(),
-		Semester:    course.GetSemester(),
-		Description: course.GetDescription(),
-	}).Where("course_id = ?", course.GetCourseID()).Exec(ctx)
+	if course.GetCourseID() == "" {
+		return nil, fmt.Errorf("%w", ErrCourseIDEmpty)
+	}
+
+	// get existing course.
+	existingCourse, err := d.GetCourse(ctx, course.GetCourseID())
 	if err != nil {
-		return fmt.Errorf("failed to update course: %w", err)
+		return nil, fmt.Errorf("failed to get course: %w", err)
 	}
 
-	if num, _ := res.RowsAffected(); num == 0 {
-		return fmt.Errorf("%w", ErrCourseNotFound)
+	// Update the fields.
+	updateField := func(field *string, newValue string) {
+		if newValue != "" {
+			*field = newValue
+		}
 	}
 
-	return nil
+	updateField(&existingCourse.CourseName, course.GetCourseName())
+	updateField(&existingCourse.Semester, course.GetSemester())
+	updateField(&existingCourse.Description, course.GetDescription())
+
+	_, err = d.db.NewUpdate().Model(existingCourse).Exec(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update course: %w", err)
+	}
+
+	return existingCourse, nil
 }
 
 // DeleteCourse removes a course by course_id.

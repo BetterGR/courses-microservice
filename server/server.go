@@ -80,12 +80,14 @@ func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest
 		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
 	}
 
-	return &cpb.GetCourseResponse{Course: &cpb.Course{
-		CourseID:    course.GetCourseID(),
-		CourseName:  course.GetCourseName(),
-		Description: course.GetDescription(),
-		Semester:    course.GetSemester(),
-	}}, nil
+	newCourse := &cpb.Course{
+		CourseID:    course.CourseID,
+		CourseName:  course.CourseName,
+		Semester:    course.Semester,
+		Description: course.Description,
+	}
+
+	return &cpb.GetCourseResponse{Course: newCourse}, nil
 }
 
 // CreateCourse creates a new course.
@@ -101,7 +103,7 @@ func (s *CoursesServer) CreateCourse(
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received CreateCourse request", "courseName", req.GetCourse().GetCourseName())
 
-	if err := s.db.AddCourse(ctx, &cpb.Course{
+	if _, err := s.db.AddCourse(ctx, &cpb.Course{
 		CourseID:    req.GetCourse().GetCourseID(),
 		CourseName:  req.GetCourse().GetCourseName(),
 		Semester:    req.GetCourse().GetSemester(),
@@ -110,7 +112,7 @@ func (s *CoursesServer) CreateCourse(
 		return nil, status.Errorf(codes.Internal, "failed to add course: %v", err)
 	}
 
-	return &cpb.CreateCourseResponse{}, nil
+	return &cpb.CreateCourseResponse{Course: req.GetCourse()}, nil
 }
 
 // UpdateCourse updates an existing course.
@@ -126,20 +128,19 @@ func (s *CoursesServer) UpdateCourse(
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received UpdateCourse request", "courseId", req.GetCourse().GetCourseID())
 
-	course, err := s.db.GetCourse(ctx, req.GetCourse().GetCourseID())
+	updatedCourse, err := s.db.UpdateCourse(ctx, req.GetCourse())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
-	}
-
-	course.CourseName = req.GetCourse().GetCourseName()
-	course.Semester = req.GetCourse().GetSemester()
-	course.Description = req.GetCourse().GetDescription()
-
-	if err = s.db.UpdateCourse(ctx, course); err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to update course: %v", err)
 	}
 
-	return &cpb.UpdateCourseResponse{}, nil
+	course := &cpb.Course{
+		CourseID:    updatedCourse.CourseID,
+		CourseName:  updatedCourse.CourseName,
+		Semester:    updatedCourse.Semester,
+		Description: updatedCourse.Description,
+	}
+
+	return &cpb.UpdateCourseResponse{Course: course}, nil
 }
 
 // DeleteCourse deletes a course by its ID.
