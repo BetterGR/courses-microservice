@@ -102,10 +102,23 @@ run: proto fmt vet
 	@echo [RUN] Starting server...
 	@go run ./server/server.go ./server/db.go $(ARGS)
 
+# Test targets
 test: proto gomod fmt vet lint
 	@echo [TEST] Running tests...
 	@go test -v ./server/ | grep -v '=== RUN' | sed 's/--- PASS:/ [PASS]/' | sed 's/--- FAIL:/ [FAIL]/'
 	@echo [TEST] Tests completed.
+
+# Run database tests specifically
+test-db: proto gomod fmt vet
+	@echo [TEST-DB] Running database tests...
+	@TEST_ENV=true go test -v ./server/ -run TestDatabaseOperations | grep -v '=== RUN' | sed 's/--- PASS:/ [PASS]/' | sed 's/--- FAIL:/ [FAIL]/'
+	@echo [TEST-DB] Database tests completed.
+
+# Run server tests specifically
+test-server: proto gomod fmt vet
+	@echo [TEST-SERVER] Running server tests...
+	@go test -v ./server/ -run 'Test[^D].*' | grep -v '=== RUN' | sed 's/--- PASS:/ [PASS]/' | sed 's/--- FAIL:/ [FAIL]/'
+	@echo [TEST-SERVER] Server tests completed.
 
 # Build Docker image
 docker-build: proto fmt vet lint build
@@ -150,5 +163,8 @@ help:
 	@echo   docker-build      Build Docker image
 	@echo   docker-push       Push Docker image to registry
 	@echo   clean             Clean up generated files
+	@echo   test              Run all tests
+	@echo   test-db           Run database tests
+	@echo   test-server       Run server tests
 
-.PHONY: all proto fmt run vet lint build docker-build docker-push gomod clean ensure-gofumpt ensure-gci ensure-golangci-lint help
+.PHONY: all proto fmt run vet lint build docker-build docker-push gomod clean ensure-gofumpt ensure-gci ensure-golangci-lint help test test-db test-server

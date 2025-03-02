@@ -26,8 +26,7 @@ const (
 // CoursesServer is an implementation of GRPC Courses microservice.
 type CoursesServer struct {
 	ms.BaseServiceServer
-	db *Database
-	// throws unimplemented error
+	db DBInterface
 	cpb.UnimplementedCoursesServiceServer
 	Claims ms.Claims
 }
@@ -67,10 +66,10 @@ func initCoursesMicroserviceServer() (*CoursesServer, error) {
 
 // GetCourse retrieves a course by its ID.
 func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest) (*cpb.GetCourseResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received GetCourse request", "courseId", req.GetCourseID())
@@ -95,10 +94,10 @@ func (s *CoursesServer) CreateCourse(
 	ctx context.Context,
 	req *cpb.CreateCourseRequest,
 ) (*cpb.CreateCourseResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received CreateCourse request", "courseName", req.GetCourse().GetCourseName())
@@ -120,10 +119,10 @@ func (s *CoursesServer) UpdateCourse(
 	ctx context.Context,
 	req *cpb.UpdateCourseRequest,
 ) (*cpb.UpdateCourseResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received UpdateCourse request", "courseId", req.GetCourse().GetCourseID())
@@ -148,10 +147,10 @@ func (s *CoursesServer) DeleteCourse(
 	ctx context.Context,
 	req *cpb.DeleteCourseRequest,
 ) (*cpb.DeleteCourseResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received DeleteCourse request", "courseId", req.GetCourseID())
@@ -168,10 +167,10 @@ func (s *CoursesServer) AddStudentToCourse(
 	ctx context.Context,
 	req *cpb.AddStudentRequest,
 ) (*cpb.AddStudentResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received AddStudentToCourse request",
@@ -189,10 +188,10 @@ func (s *CoursesServer) RemoveStudentFromCourse(
 	ctx context.Context,
 	req *cpb.RemoveStudentRequest,
 ) (*cpb.RemoveStudentResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received RemoveStudentFromCourse request",
@@ -207,10 +206,10 @@ func (s *CoursesServer) RemoveStudentFromCourse(
 
 // AddStaffToCourse adds a staff member to a course.
 func (s *CoursesServer) AddStaffToCourse(ctx context.Context, req *cpb.AddStaffRequest) (*cpb.AddStaffResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received AddStaffToCourse request",
@@ -228,10 +227,10 @@ func (s *CoursesServer) RemoveStaffFromCourse(
 	ctx context.Context,
 	req *cpb.RemoveStaffRequest,
 ) (*cpb.RemoveStaffResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received RemoveStaffFromCourse request",
@@ -249,10 +248,10 @@ func (s *CoursesServer) GetCourseStudents(
 	ctx context.Context,
 	req *cpb.GetCourseStudentsRequest,
 ) (*cpb.GetCourseStudentsResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received GetCourseStudents request", "courseId", req.GetCourseID())
@@ -269,10 +268,10 @@ func (s *CoursesServer) GetCourseStudents(
 func (s *CoursesServer) GetCourseStaff(ctx context.Context,
 	req *cpb.GetCourseStaffRequest,
 ) (*cpb.GetCourseStaffResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received GetCourseStaff request", "courseId", req.GetCourseID())
@@ -289,10 +288,10 @@ func (s *CoursesServer) GetCourseStaff(ctx context.Context,
 func (s *CoursesServer) GetStudentCourses(ctx context.Context,
 	req *cpb.GetStudentCoursesRequest,
 ) (*cpb.GetStudentCoursesResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received GetStudentCourses request", "studentId", req.GetStudentID())
@@ -309,10 +308,10 @@ func (s *CoursesServer) GetStudentCourses(ctx context.Context,
 func (s *CoursesServer) GetStaffCourses(ctx context.Context,
 	req *cpb.GetStaffCoursesRequest,
 ) (*cpb.GetStaffCoursesResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received GetStaffCourses request", "staffId", req.GetStaffID())
@@ -329,10 +328,10 @@ func (s *CoursesServer) GetStaffCourses(ctx context.Context,
 func (s *CoursesServer) AddAnnouncementToCourse(ctx context.Context,
 	req *cpb.AddAnnouncementRequest,
 ) (*cpb.AddAnnouncementResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received AddAnnouncementToCourse request",
@@ -349,10 +348,10 @@ func (s *CoursesServer) AddAnnouncementToCourse(ctx context.Context,
 func (s *CoursesServer) GetCourseAnnouncements(ctx context.Context,
 	req *cpb.GetCourseAnnouncementsRequest,
 ) (*cpb.GetCourseAnnouncementsResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received GetCourseAnnouncements request", "courseId", req.GetCourseID())
@@ -378,10 +377,10 @@ func (s *CoursesServer) GetCourseAnnouncements(ctx context.Context,
 func (s *CoursesServer) RemoveAnnouncementFromCourse(ctx context.Context,
 	req *cpb.RemoveAnnouncementRequest,
 ) (*cpb.RemoveAnnouncementResponse, error) {
-	// if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
-	// 	return nil, fmt.Errorf("authentication failed: %w",
-	// 		status.Error(codes.Unauthenticated, err.Error()))
-	// }
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
 
 	logger := klog.FromContext(ctx)
 	logger.V(logLevelDebug).Info("Received RemoveAnnouncementFromCourse request",
@@ -395,7 +394,7 @@ func (s *CoursesServer) RemoveAnnouncementFromCourse(ctx context.Context,
 }
 
 func main() {
-	// init klog
+	// init klog.
 	klog.InitFlags(nil)
 	flag.Parse()
 
@@ -404,13 +403,13 @@ func main() {
 		klog.Fatalf("Error loading .env file")
 	}
 
-	// init the CoursesServer
+	// init the CoursesServer.
 	server, err := initCoursesMicroserviceServer()
 	if err != nil {
 		klog.Fatalf("Failed to init CoursesServer: %v", err)
 	}
 
-	// create a listener on port 'address'
+	// create a listener on port 'address'.
 	address := "localhost:" + os.Getenv("GRPC_PORT")
 
 	lis, err := net.Listen(connectionProtocol, address)
@@ -419,11 +418,11 @@ func main() {
 	}
 
 	klog.V(logLevelDebug).Info("Starting CoursesServer on port: ", address)
-	// create a grpc CoursesServer
+	// create a grpc CoursesServer.
 	grpcServer := grpc.NewServer()
 	cpb.RegisterCoursesServiceServer(grpcServer, server)
 
-	// serve the grpc CoursesServer
+	// serve the grpc CoursesServer.
 	if err := grpcServer.Serve(lis); err != nil {
 		klog.Fatalf("Failed to serve: %v", err)
 	}

@@ -15,10 +15,52 @@ import (
 	"k8s.io/klog/v2"
 )
 
+// CourseDBInterface defines the core CRUD operations for courses.
+type CourseDBInterface interface {
+	AddCourse(ctx context.Context, course *cpb.Course) (*Course, error)
+	GetCourse(ctx context.Context, courseID string) (*Course, error)
+	UpdateCourse(ctx context.Context, course *cpb.Course) (*Course, error)
+	DeleteCourse(ctx context.Context, courseID string) error
+}
+
+// StudentDBInterface defines operations related to student enrollments.
+type StudentDBInterface interface {
+	AddStudentToCourse(ctx context.Context, courseID, studentID string) error
+	RemoveStudentFromCourse(ctx context.Context, courseID, studentID string) error
+	GetCourseStudents(ctx context.Context, courseID string) ([]string, error)
+	GetStudentCourses(ctx context.Context, studentID string) ([]string, error)
+}
+
+// StaffDBInterface defines operations related to staff assignments.
+type StaffDBInterface interface {
+	AddStaffToCourse(ctx context.Context, courseID, staffID string) error
+	RemoveStaffFromCourse(ctx context.Context, courseID, staffID string) error
+	GetCourseStaff(ctx context.Context, courseID string) ([]string, error)
+	GetStaffCourses(ctx context.Context, staffID string) ([]string, error)
+}
+
+// AnnouncementDBInterface defines operations related to course announcements.
+type AnnouncementDBInterface interface {
+	AddAnnouncement(ctx context.Context, req *cpb.AddAnnouncementRequest) error
+	GetAnnouncements(ctx context.Context, courseID string) ([]Announcement, error)
+	RemoveAnnouncement(ctx context.Context, courseID, announcementID string) error
+}
+
+// DBInterface combines all database operation interfaces.
+type DBInterface interface {
+	CourseDBInterface
+	StudentDBInterface
+	StaffDBInterface
+	AnnouncementDBInterface
+}
+
 // Database encapsulates the PostgreSQL connection.
 type Database struct {
 	db *bun.DB
 }
+
+// Verify that Database implements DBInterface at compile time.
+var _ DBInterface = (*Database)(nil)
 
 var (
 	ErrCourseNil         = errors.New("course is nil")

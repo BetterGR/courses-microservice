@@ -75,18 +75,25 @@ func createTestCourse() *cpb.Course {
 	return &cpb.Course{
 		CourseID:    "236781",
 		CourseName:  "Deep Learning",
-		Semester:    "Winter 2025",
+		Semester:    "Winter_2025",
 		Description: "This course covers the basics of deep learning.",
 	}
 }
 
+// startTestServer initializes a test server with a mock database.
 func startTestServer() (*grpc.Server, net.Listener, *TestCoursesServer, error) {
-	server, err := initCoursesMicroserviceServer()
+	base, err := ms.CreateBaseServiceServer()
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, fmt.Errorf("failed to create base service: %w", err)
 	}
 
-	server.Claims = MockClaims{}
+	mockDB := NewMockDatabase()
+	server := &CoursesServer{
+		BaseServiceServer: base,
+		db:                mockDB,
+		Claims:            MockClaims{},
+	}
+
 	testServer := &TestCoursesServer{CoursesServer: server}
 	grpcServer := grpc.NewServer()
 	cpb.RegisterCoursesServiceServer(grpcServer, testServer)
@@ -348,7 +355,21 @@ func TestGetCourseAnnouncements(t *testing.T) {
 	req := &cpb.GetCourseAnnouncementsRequest{CourseID: course.GetCourseID(), Token: "test-token"}
 	resp, err := client.GetCourseAnnouncements(t.Context(), req)
 	require.NoError(t, err)
-	assert.Contains(t, resp.GetAnnouncements(), newAnnouncement)
+
+	// Check if the response contains an announcement with matching fields
+	// instead of comparing the entire protocol buffer object
+	found := false
+
+	for _, announcement := range resp.GetAnnouncements() {
+		if announcement.GetAnnouncementID() == newAnnouncement.GetAnnouncementID() &&
+			announcement.GetAnnouncementTitle() == newAnnouncement.GetAnnouncementTitle() &&
+			announcement.GetAnnouncementContent() == newAnnouncement.GetAnnouncementContent() {
+			found = true
+			break
+		}
+	}
+
+	assert.True(t, found, "Response should contain the added announcement")
 }
 
 func TestRemoveAnnouncementFromCourse(t *testing.T) {
