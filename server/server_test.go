@@ -323,8 +323,8 @@ func TestAddAnnouncementToCourse(t *testing.T) {
 
 	newAnnouncement := &cpb.Announcement{
 		AnnouncementID:      "1",
-		AnnouncementContent: "New Announcement",
-		AnnouncementTitle:   "New",
+		AnnouncementContent: "This is the first day of class. Please be on time.",
+		AnnouncementTitle:   "First Day of Class",
 	}
 
 	_, err := client.AddAnnouncementToCourse(t.Context(),
@@ -341,8 +341,8 @@ func TestGetCourseAnnouncements(t *testing.T) {
 
 	newAnnouncement := &cpb.Announcement{
 		AnnouncementID:      "1",
-		AnnouncementContent: "New Announcement",
-		AnnouncementTitle:   "New",
+		AnnouncementContent: "This is the first day of class. Please be on time.",
+		AnnouncementTitle:   "First Day of Class",
 	}
 
 	_, err := client.AddAnnouncementToCourse(t.Context(),
@@ -377,9 +377,9 @@ func TestRemoveAnnouncementFromCourse(t *testing.T) {
 	course := createCourse(t, client)
 
 	newAnnouncement := &cpb.Announcement{
-		AnnouncementID:      "1",
-		AnnouncementContent: "New Announcement",
-		AnnouncementTitle:   "New",
+		AnnouncementID:      "1234567890",
+		AnnouncementContent: "This is the first day of class. Please be on time.",
+		AnnouncementTitle:   "First Day of Class",
 	}
 
 	_, err := client.AddAnnouncementToCourse(t.Context(),
@@ -391,7 +391,7 @@ func TestRemoveAnnouncementFromCourse(t *testing.T) {
 
 	req := &cpb.RemoveAnnouncementRequest{
 		CourseID:       course.GetCourseID(),
-		AnnouncementID: "1",
+		AnnouncementID: "1234567890",
 		Token:          "test-token",
 	}
 	_, err = client.RemoveAnnouncementFromCourse(t.Context(), req)

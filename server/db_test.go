@@ -46,10 +46,10 @@ func cleanupTestDatabase(t *testing.T, database *Database) {
 // buildTestCourse creates a test course.
 func buildTestCourse() *cpb.Course {
 	return &cpb.Course{
-		CourseID:    "TEST101",
-		CourseName:  "Test Course",
-		Semester:    "Test Semester",
-		Description: "Test Description",
+		CourseID:    "233332",
+		CourseName:  "Deep Learning",
+		Semester:    "Winter 2025",
+		Description: "This course covers the basics of deep learning.",
 	}
 }
 
@@ -138,10 +138,10 @@ func testEntityOperations(t *testing.T, isStudent bool) {
 
 	var entityID, entityType string
 	if isStudent {
-		entityID = "TESTSTUDENT1"
+		entityID = "2020202020"
 		entityType = "student"
 	} else {
-		entityID = "TESTSTAFF1"
+		entityID = "3123123123"
 		entityType = "staff"
 	}
 
@@ -242,13 +242,13 @@ func testAnnouncements(t *testing.T) {
 	_, err := database.AddCourse(t.Context(), testCourse)
 	require.NoError(t, err, "Should add course without error")
 
-	announcementID := "TESTANNOUNCEMENT1"
+	announcementID := "1234567890"
 	announcement := &cpb.AddAnnouncementRequest{
 		CourseID: testCourse.GetCourseID(),
 		Announcement: &cpb.Announcement{
 			AnnouncementID:      announcementID,
-			AnnouncementTitle:   "Test Announcement",
-			AnnouncementContent: "This is a test announcement.",
+			AnnouncementTitle:   "First Day of Class",
+			AnnouncementContent: "This is the first day of class. Please be on time.",
 		},
 	}
 
