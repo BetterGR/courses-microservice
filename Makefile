@@ -103,10 +103,7 @@ run: proto fmt vet
 	@go run ./server/server.go ./server/db.go $(ARGS)
 
 # Test targets
-test: proto gomod fmt vet lint
-	@echo [TEST] Running tests...
-	@go test -v ./server/ | grep -v '=== RUN' | sed 's/--- PASS:/ [PASS]/' | sed 's/--- FAIL:/ [FAIL]/'
-	@echo [TEST] Tests completed.
+test: test-db test-server
 
 # Run database tests specifically
 test-db: proto gomod fmt vet
