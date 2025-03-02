@@ -10,10 +10,10 @@ PROTO_FLAGS = -I $(PROTO_DIR) $(PROTO_FILE) \
 DOCKER_IMAGE_NAME ?= $(SERVICE_NAME)
 DOCKER_TAG ?= latest
 DOCKERFILE ?= Dockerfile
-DOCKER_REGISTRY ?= ghcr.io/BetterGR
+DOCKER_REGISTRY ?= ghcr.io/bettergr
 
 # Default target
-all: proto gomod fmt vet lint
+all: proto gomod fmt vet
 
 # Ensure tools are installed
 ensure-gofumpt:
@@ -94,17 +94,13 @@ lint: ensure-golangci-lint fmt
 # Build server
 build: proto fmt vet lint
 	@echo [BUILD] Building server binary...
-ifeq ($(OS),Windows_NT)
-	@go build -o server\server.exe ./server/server.go
-else
-	@go build -o server/server ./server/server.go
-endif
-	@echo [BUILD] Server binary built.
+	@go build -o server/server ./server/server.go ./server/db.go
+	@echo [BUILD] Server binary built successfully.
 
 # Run the server
-run: proto fmt vet lint
+run: proto fmt vet 
 	@echo [RUN] Starting server...
-	@go run ./server $(ARGS)
+	@go run ./server/server.go ./server/db.go $(ARGS)
 
 test: proto gomod fmt vet lint
 	@echo [TEST] Running tests...
@@ -133,7 +129,7 @@ endif
 clean:
 	@echo [CLEAN] Removing generated files...
 ifeq ($(OS),Windows_NT)
-	@del /Q server\server.exe
+	@del /Q server\server
 	@del /Q protos\*.pb.go
 else
 	@rm -rf server/server

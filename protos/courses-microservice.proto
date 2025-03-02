@@ -171,13 +171,13 @@ message GetStaffCoursesResponse {
 // Request message for adding an announcement to a course.
 message AddAnnouncementRequest {
     string token = 1;
-    string courseID = 2;
-    string announcementID = 3;
-    string announcement = 4;
+    string CourseID = 2;
+    Announcement announcement = 3;
 }
 
 // Response message for adding an announcement to a course.
 message AddAnnouncementResponse {
+    Announcement announcement = 1;
 }
 
 // Request message for getting all announcements in a course.
@@ -188,7 +188,7 @@ message GetCourseAnnouncementsRequest {
 
 // Response message for getting all announcements in a course.
 message GetCourseAnnouncementsResponse {
-    repeated string announcements = 1;
+    repeated Announcement announcements = 1;
 }
 
 // Request message for removing an announcement from a course.
@@ -208,4 +208,10 @@ message Course {
     string courseName = 2;
     string semester = 3;
     string description = 4;
+}
+
+message Announcement{
+    string AnnouncementID = 1;
+    string AnnouncementTitle = 2;
+    string AnnouncementContent = 3;
 }
