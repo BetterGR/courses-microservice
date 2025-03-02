@@ -66,6 +66,7 @@ func initCoursesMicroserviceServer() (*CoursesServer, error) {
 
 // GetCourse retrieves a course by its ID.
 func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest) (*cpb.GetCourseResponse, error) {
+
 	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
@@ -85,6 +86,7 @@ func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest
 		Semester:    course.Semester,
 		Description: course.Description,
 	}
+	klog.Infof("course Name: %s", newCourse.CourseName)
 
 	return &cpb.GetCourseResponse{Course: newCourse}, nil
 }
@@ -412,12 +414,13 @@ func main() {
 	// create a listener on port 'address'.
 	address := "localhost:" + os.Getenv("GRPC_PORT")
 
+	klog.Infof("address: %s", address)
+
 	lis, err := net.Listen(connectionProtocol, address)
 	if err != nil {
 		klog.Fatalf("Failed to listen: %v", err)
 	}
 
-	klog.V(logLevelDebug).Info("Starting CoursesServer on port: ", address)
 	// create a grpc CoursesServer.
 	grpcServer := grpc.NewServer()
 	cpb.RegisterCoursesServiceServer(grpcServer, server)
