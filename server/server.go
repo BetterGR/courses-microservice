@@ -66,7 +66,6 @@ func initCoursesMicroserviceServer() (*CoursesServer, error) {
 
 // GetCourse retrieves a course by its ID.
 func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest) (*cpb.GetCourseResponse, error) {
-
 	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
 		return nil, fmt.Errorf("authentication failed: %w",
 			status.Error(codes.Unauthenticated, err.Error()))
@@ -371,6 +370,8 @@ func (s *CoursesServer) GetCourseAnnouncements(ctx context.Context,
 			AnnouncementContent: a.Content,
 		})
 	}
+
+	klog.V(logLevelDebug).Infof("Announcements: in get course announcements inside server: %v", announcements[0].AnnouncementContent)
 
 	return &cpb.GetCourseAnnouncementsResponse{Announcements: announcements}, nil
 }
