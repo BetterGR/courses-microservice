@@ -76,7 +76,7 @@ func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest
 
 	course, err := s.db.GetCourse(ctx, req.GetCourseID())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
+		return nil, fmt.Errorf("course not found: %w", status.Error(codes.NotFound, err.Error()))
 	}
 
 	newCourse := &cpb.Course{
@@ -85,7 +85,6 @@ func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest
 		Semester:    course.Semester,
 		Description: course.Description,
 	}
-	klog.Infof("course Name: %s", newCourse.CourseName)
 
 	return &cpb.GetCourseResponse{Course: newCourse}, nil
 }
@@ -109,7 +108,7 @@ func (s *CoursesServer) CreateCourse(
 		Semester:    req.GetCourse().GetSemester(),
 		Description: req.GetCourse().GetDescription(),
 	}); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add course: %v", err)
+		return nil, fmt.Errorf("failed to add course: %w", status.Error(codes.Internal, err.Error()))
 	}
 
 	return &cpb.CreateCourseResponse{Course: req.GetCourse()}, nil
@@ -130,7 +129,7 @@ func (s *CoursesServer) UpdateCourse(
 
 	updatedCourse, err := s.db.UpdateCourse(ctx, req.GetCourse())
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to update course: %v", err)
+		return nil, fmt.Errorf("failed to update course: %w", status.Error(codes.Internal, err.Error()))
 	}
 
 	course := &cpb.Course{
@@ -157,7 +156,7 @@ func (s *CoursesServer) DeleteCourse(
 	logger.V(logLevelDebug).Info("Received DeleteCourse request", "courseId", req.GetCourseID())
 
 	if err := s.db.DeleteCourse(ctx, req.GetCourseID()); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to delete course: %v", err)
+		return nil, fmt.Errorf("failed to delete course: %w", status.Error(codes.Internal, err.Error()))
 	}
 
 	return &cpb.DeleteCourseResponse{}, nil
@@ -178,7 +177,7 @@ func (s *CoursesServer) AddStudentToCourse(
 		"courseId", req.GetCourseID(), "studentId", req.GetStudentID())
 
 	if err := s.db.AddStudentToCourse(ctx, req.GetCourseID(), req.GetStudentID()); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add student to course: %v", err)
+		return nil, fmt.Errorf("failed to add student to course: %w", status.Error(codes.Internal, err.Error()))
 	}
 
 	return &cpb.AddStudentResponse{}, nil
@@ -199,7 +198,7 @@ func (s *CoursesServer) RemoveStudentFromCourse(
 		"courseId", req.GetCourseID(), "studentId", req.GetStudentID())
 
 	if err := s.db.RemoveStudentFromCourse(ctx, req.GetCourseID(), req.GetStudentID()); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to remove student from course: %v", err)
+		return nil, fmt.Errorf("failed to remove student from course: %w", status.Error(codes.Internal, err.Error()))
 	}
 
 	return &cpb.RemoveStudentResponse{}, nil
@@ -217,7 +216,7 @@ func (s *CoursesServer) AddStaffToCourse(ctx context.Context, req *cpb.AddStaffR
 		"courseId", req.GetCourseID(), "staffId", req.GetStaffID())
 
 	if err := s.db.AddStaffToCourse(ctx, req.GetCourseID(), req.GetStaffID()); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add staff to course: %v", err)
+		return nil, fmt.Errorf("failed to add staff to course: %w", status.Error(codes.Internal, err.Error()))
 	}
 
 	return &cpb.AddStaffResponse{}, nil
@@ -238,7 +237,7 @@ func (s *CoursesServer) RemoveStaffFromCourse(
 		"courseId", req.GetCourseID(), "staffId", req.GetStaffID())
 
 	if err := s.db.RemoveStaffFromCourse(ctx, req.GetCourseID(), req.GetStaffID()); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to remove staff from course: %v", err)
+		return nil, fmt.Errorf("failed to remove staff from course: %w", status.Error(codes.Internal, err.Error()))
 	}
 
 	return &cpb.RemoveStaffResponse{}, nil
@@ -259,7 +258,7 @@ func (s *CoursesServer) GetCourseStudents(
 
 	studentIDs, err := s.db.GetCourseStudents(ctx, req.GetCourseID())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
+		return nil, fmt.Errorf("course not found: %w", status.Error(codes.NotFound, err.Error()))
 	}
 
 	return &cpb.GetCourseStudentsResponse{StudentsIDs: studentIDs}, nil
@@ -279,7 +278,7 @@ func (s *CoursesServer) GetCourseStaff(ctx context.Context,
 
 	staffIDs, err := s.db.GetCourseStaff(ctx, req.GetCourseID())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
+		return nil, fmt.Errorf("course not found: %w", status.Error(codes.NotFound, err.Error()))
 	}
 
 	return &cpb.GetCourseStaffResponse{StaffIDs: staffIDs}, nil
@@ -299,7 +298,7 @@ func (s *CoursesServer) GetStudentCourses(ctx context.Context,
 
 	courseIDs, err := s.db.GetStudentCourses(ctx, req.GetStudentID())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "student not found: %v", err)
+		return nil, fmt.Errorf("student not found: %w", status.Error(codes.NotFound, err.Error()))
 	}
 
 	return &cpb.GetStudentCoursesResponse{CoursesIDs: courseIDs}, nil
@@ -319,7 +318,7 @@ func (s *CoursesServer) GetStaffCourses(ctx context.Context,
 
 	courseIDs, err := s.db.GetStaffCourses(ctx, req.GetStaffID())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "staff not found: %v", err)
+		return nil, fmt.Errorf("staff not found: %w", status.Error(codes.NotFound, err.Error()))
 	}
 
 	return &cpb.GetStaffCoursesResponse{CoursesIDs: courseIDs}, nil
@@ -339,7 +338,7 @@ func (s *CoursesServer) AddAnnouncementToCourse(ctx context.Context,
 		"courseId", req.GetCourseID())
 
 	if err := s.db.AddAnnouncement(ctx, req); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to add announcement to course: %v", err)
+		return nil, fmt.Errorf("failed to add announcement to course: %w", status.Error(codes.Internal, err.Error()))
 	}
 
 	return &cpb.AddAnnouncementResponse{}, nil
@@ -359,7 +358,7 @@ func (s *CoursesServer) GetCourseAnnouncements(ctx context.Context,
 
 	resp, err := s.db.GetAnnouncements(ctx, req.GetCourseID())
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "course not found: %v", err)
+		return nil, fmt.Errorf("course not found: %w", status.Error(codes.NotFound, err.Error()))
 	}
 
 	announcements := make([]*cpb.Announcement, 0)
@@ -370,8 +369,6 @@ func (s *CoursesServer) GetCourseAnnouncements(ctx context.Context,
 			AnnouncementContent: a.Content,
 		})
 	}
-
-	klog.V(logLevelDebug).Infof("Announcements: in get course announcements inside server: %v", announcements[0].AnnouncementContent)
 
 	return &cpb.GetCourseAnnouncementsResponse{Announcements: announcements}, nil
 }
@@ -390,7 +387,7 @@ func (s *CoursesServer) RemoveAnnouncementFromCourse(ctx context.Context,
 		"courseId", req.GetCourseID(), "announcementId", req.GetAnnouncementID())
 
 	if err := s.db.RemoveAnnouncement(ctx, req.GetCourseID(), req.GetAnnouncementID()); err != nil {
-		return nil, status.Errorf(codes.Internal, "failed to remove announcement from course: %v", err)
+		return nil, fmt.Errorf("failed to remove announcement from course: %w", status.Error(codes.Internal, err.Error()))
 	}
 
 	return &cpb.RemoveAnnouncementResponse{}, nil
@@ -415,13 +412,12 @@ func main() {
 	// create a listener on port 'address'.
 	address := "localhost:" + os.Getenv("GRPC_PORT")
 
-	klog.Infof("address: %s", address)
-
 	lis, err := net.Listen(connectionProtocol, address)
 	if err != nil {
 		klog.Fatalf("Failed to listen: %v", err)
 	}
 
+	klog.V(logLevelDebug).Info("Starting CoursesServer on port: ", address)
 	// create a grpc CoursesServer.
 	grpcServer := grpc.NewServer()
 	cpb.RegisterCoursesServiceServer(grpcServer, server)
