@@ -85,6 +85,7 @@ func (s *CoursesServer) GetCourse(ctx context.Context, req *cpb.GetCourseRequest
 		Semester:    course.Semester,
 		Description: course.Description,
 	}
+	klog.Infof("course Name: %s", newCourse.CourseName)
 
 	return &cpb.GetCourseResponse{Course: newCourse}, nil
 }
@@ -370,6 +371,8 @@ func (s *CoursesServer) GetCourseAnnouncements(ctx context.Context,
 		})
 	}
 
+	klog.V(logLevelDebug).Infof("Announcements: in get course announcements inside server: %v", announcements[0].AnnouncementContent)
+
 	return &cpb.GetCourseAnnouncementsResponse{Announcements: announcements}, nil
 }
 
@@ -412,12 +415,13 @@ func main() {
 	// create a listener on port 'address'.
 	address := "localhost:" + os.Getenv("GRPC_PORT")
 
+	klog.Infof("address: %s", address)
+
 	lis, err := net.Listen(connectionProtocol, address)
 	if err != nil {
 		klog.Fatalf("Failed to listen: %v", err)
 	}
 
-	klog.V(logLevelDebug).Info("Starting CoursesServer on port: ", address)
 	// create a grpc CoursesServer.
 	grpcServer := grpc.NewServer()
 	cpb.RegisterCoursesServiceServer(grpcServer, server)

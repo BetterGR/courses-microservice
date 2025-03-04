@@ -484,7 +484,6 @@ func (d *Database) GetAnnouncements(ctx context.Context, courseID string) ([]Ann
 
 	err := d.db.NewSelect().
 		Model((*Announcement)(nil)).
-		Column("title").
 		Where("course_id = ?", courseID).
 		Scan(ctx, &announcements)
 	if err != nil {
