@@ -1,0 +1,14 @@
+linters:
+  enable-all: true
+  disable:
+    - nlreturn       # Disables "newline return" linter
+    - godox          # Disables TODOs or comments checks
+    - ireturn        # Disables checks for explicit return style
+    - depguard
+    - exhaustruct
+    - tenv
+    - paralleltest   # Disables parallel test check
+
+run:
+  issues-exclude-dirs:
+    - vendor  # Excludes 'vendor' directory from linting

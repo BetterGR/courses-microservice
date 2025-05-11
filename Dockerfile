@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Base image with Go
-FROM golang:1.23.3-alpine AS base
+FROM golang:1.24.0-alpine AS base
 
 # Install build dependencies
 RUN apk --no-cache add git

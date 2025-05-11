@@ -10,18 +10,19 @@ PROTO_FLAGS = -I $(PROTO_DIR) $(PROTO_FILE) \
 DOCKER_IMAGE_NAME ?= $(SERVICE_NAME)
 DOCKER_TAG ?= latest
 DOCKERFILE ?= Dockerfile
-DOCKER_REGISTRY ?= ghcr.io/BetterGR
+DOCKER_REGISTRY ?= ghcr.io/bettergr
 
 # Default target
-all: proto gomod fmt vet lint
+all: proto gomod fmt vet
 
 # Ensure tools are installed
 ensure-gofumpt:
 ifeq ($(OS),Windows_NT)
-	@where gofumpt > nul 2>&1 || ( \
+	@where gofumpt > temp.txt 2>&1 || ( \
 		echo [INSTALL] gofumpt not found. Installing... & \
 		go install mvdan.cc/gofumpt@latest \
 	)
+	@ del temp.txt
 else
 	@command -v gofumpt > /dev/null 2>&1 || { \
 		echo "[INSTALL] gofumpt not found. Installing..."; \
@@ -31,10 +32,11 @@ endif
 
 ensure-gci:
 ifeq ($(OS),Windows_NT)
-	@where gci > nul 2>&1 || ( \
+	@where gci > temp.txt 2>&1 || ( \
 		echo [INSTALL] gci not found. Installing... & \
 		go install github.com/daixiang0/gci@latest \
 	)
+	@ del temp.txt
 else
 	@command -v gci > /dev/null 2>&1 || { \
 		echo "[INSTALL] gci not found. Installing..."; \
@@ -44,10 +46,11 @@ endif
 
 ensure-golangci-lint:
 ifeq ($(OS),Windows_NT)
-	@where golangci-lint >nul 2>&1 || ( \
+	@where golangci-lint > temp.txt 2>&1 || ( \
 		echo [INSTALL] golangci-lint not found. Installing... & \
 		go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest \
 	)
+	@ del temp.txt
 else
 	@command -v golangci-lint >/dev/null 2>&1 || { \
 		echo "[INSTALL] golangci-lint not found. Installing..."; \
@@ -74,7 +77,7 @@ fmt: ensure-gofumpt ensure-gci
 	@go fmt ./...
 	@gofumpt -w .
 	@gci write --skip-generated .
-	@echo [FMT] Go code formatted .
+	@echo [FMT] Go code formatted.
 
 # Vet Go code
 vet:
@@ -91,17 +94,28 @@ lint: ensure-golangci-lint fmt
 # Build server
 build: proto fmt vet lint
 	@echo [BUILD] Building server binary...
-ifeq ($(OS),Windows_NT)
-	@go build -o server\server.exe ./server/server.go
-else
-	@go build -o server/server ./server/server.go
-endif
-	@echo [BUILD] Server binary built.
+	@go build -o server/server ./server/server.go ./server/db.go
+	@echo [BUILD] Server binary built successfully.
 
 # Run the server
-run: proto fmt vet lint
+run: proto fmt vet 
 	@echo [RUN] Starting server...
-	@go run ./server/server.go $(ARGS)
+	@go run ./server/server.go ./server/db.go $(ARGS)
+
+# Test targets
+test: test-db test-server
+
+# Run database tests specifically
+test-db: proto gomod fmt vet
+	@echo [TEST-DB] Running database tests...
+	@TEST_ENV=true go test -v ./server/ -run TestDatabaseOperations | grep -v '=== RUN' | sed 's/--- PASS:/ [PASS]/' | sed 's/--- FAIL:/ [FAIL]/'
+	@echo [TEST-DB] Database tests completed.
+
+# Run server tests specifically
+test-server: proto gomod fmt vet
+	@echo [TEST-SERVER] Running server tests...
+	@go test -v ./server/ -run 'Test[^D].*' | grep -v '=== RUN' | sed 's/--- PASS:/ [PASS]/' | sed 's/--- FAIL:/ [FAIL]/'
+	@echo [TEST-SERVER] Server tests completed.
 
 # Build Docker image
 docker-build: proto fmt vet lint build
@@ -125,7 +139,7 @@ endif
 clean:
 	@echo [CLEAN] Removing generated files...
 ifeq ($(OS),Windows_NT)
-	@del /Q server\server.exe
+	@del /Q server\server
 	@del /Q protos\*.pb.go
 else
 	@rm -rf server/server
@@ -146,5 +160,8 @@ help:
 	@echo   docker-build      Build Docker image
 	@echo   docker-push       Push Docker image to registry
 	@echo   clean             Clean up generated files
+	@echo   test              Run all tests
+	@echo   test-db           Run database tests
+	@echo   test-server       Run server tests
 
-.PHONY: all proto fmt run vet lint build docker-build docker-push gomod clean ensure-gofumpt ensure-gci ensure-golangci-lint help
+.PHONY: all proto fmt run vet lint build docker-build docker-push gomod clean ensure-gofumpt ensure-gci ensure-golangci-lint help test test-db test-server
