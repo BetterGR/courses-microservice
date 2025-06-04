@@ -398,9 +398,8 @@ func main() {
 	klog.InitFlags(nil)
 	flag.Parse()
 
-	err := godotenv.Load()
-	if err != nil {
-		klog.Fatalf("Error loading .env file")
+	if err := godotenv.Load(); err != nil {
+	    klog.Warning("Warning: No .env file loaded, proceeding with environment variables only")
 	}
 
 	// init the CoursesServer.
