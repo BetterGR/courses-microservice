@@ -31,6 +31,7 @@ const (
 	CoursesService_GetCourseStaff_FullMethodName               = "/courses.CoursesService/GetCourseStaff"
 	CoursesService_GetStudentCourses_FullMethodName            = "/courses.CoursesService/GetStudentCourses"
 	CoursesService_GetStaffCourses_FullMethodName              = "/courses.CoursesService/GetStaffCourses"
+	CoursesService_GetSemesterCourses_FullMethodName           = "/courses.CoursesService/GetSemesterCourses"
 	CoursesService_AddAnnouncementToCourse_FullMethodName      = "/courses.CoursesService/AddAnnouncementToCourse"
 	CoursesService_GetCourseAnnouncements_FullMethodName       = "/courses.CoursesService/GetCourseAnnouncements"
 	CoursesService_RemoveAnnouncementFromCourse_FullMethodName = "/courses.CoursesService/RemoveAnnouncementFromCourse"
@@ -64,6 +65,8 @@ type CoursesServiceClient interface {
 	GetStudentCourses(ctx context.Context, in *GetStudentCoursesRequest, opts ...grpc.CallOption) (*GetStudentCoursesResponse, error)
 	// Get staff's courses.
 	GetStaffCourses(ctx context.Context, in *GetStaffCoursesRequest, opts ...grpc.CallOption) (*GetStaffCoursesResponse, error)
+	// Get all courses in a semester.
+	GetSemesterCourses(ctx context.Context, in *GetSemesterCoursesRequest, opts ...grpc.CallOption) (*GetSemesterCoursesResponse, error)
 	// Add an announcement to a course.
 	AddAnnouncementToCourse(ctx context.Context, in *AddAnnouncementRequest, opts ...grpc.CallOption) (*AddAnnouncementResponse, error)
 	// Get all announcements in a course.
@@ -200,6 +203,16 @@ func (c *coursesServiceClient) GetStaffCourses(ctx context.Context, in *GetStaff
 	return out, nil
 }
 
+func (c *coursesServiceClient) GetSemesterCourses(ctx context.Context, in *GetSemesterCoursesRequest, opts ...grpc.CallOption) (*GetSemesterCoursesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetSemesterCoursesResponse)
+	err := c.cc.Invoke(ctx, CoursesService_GetSemesterCourses_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *coursesServiceClient) AddAnnouncementToCourse(ctx context.Context, in *AddAnnouncementRequest, opts ...grpc.CallOption) (*AddAnnouncementResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(AddAnnouncementResponse)
@@ -258,6 +271,8 @@ type CoursesServiceServer interface {
 	GetStudentCourses(context.Context, *GetStudentCoursesRequest) (*GetStudentCoursesResponse, error)
 	// Get staff's courses.
 	GetStaffCourses(context.Context, *GetStaffCoursesRequest) (*GetStaffCoursesResponse, error)
+	// Get all courses in a semester.
+	GetSemesterCourses(context.Context, *GetSemesterCoursesRequest) (*GetSemesterCoursesResponse, error)
 	// Add an announcement to a course.
 	AddAnnouncementToCourse(context.Context, *AddAnnouncementRequest) (*AddAnnouncementResponse, error)
 	// Get all announcements in a course.
@@ -309,6 +324,9 @@ func (UnimplementedCoursesServiceServer) GetStudentCourses(context.Context, *Get
 }
 func (UnimplementedCoursesServiceServer) GetStaffCourses(context.Context, *GetStaffCoursesRequest) (*GetStaffCoursesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStaffCourses not implemented")
+}
+func (UnimplementedCoursesServiceServer) GetSemesterCourses(context.Context, *GetSemesterCoursesRequest) (*GetSemesterCoursesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSemesterCourses not implemented")
 }
 func (UnimplementedCoursesServiceServer) AddAnnouncementToCourse(context.Context, *AddAnnouncementRequest) (*AddAnnouncementResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddAnnouncementToCourse not implemented")
@@ -556,6 +574,24 @@ func _CoursesService_GetStaffCourses_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CoursesService_GetSemesterCourses_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetSemesterCoursesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoursesServiceServer).GetSemesterCourses(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CoursesService_GetSemesterCourses_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoursesServiceServer).GetSemesterCourses(ctx, req.(*GetSemesterCoursesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _CoursesService_AddAnnouncementToCourse_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AddAnnouncementRequest)
 	if err := dec(in); err != nil {
@@ -664,6 +700,10 @@ var CoursesService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetStaffCourses",
 			Handler:    _CoursesService_GetStaffCourses_Handler,
+		},
+		{
+			MethodName: "GetSemesterCourses",
+			Handler:    _CoursesService_GetSemesterCourses_Handler,
 		},
 		{
 			MethodName: "AddAnnouncementToCourse",
