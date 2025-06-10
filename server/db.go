@@ -21,6 +21,7 @@ type CourseDBInterface interface {
 	GetCourse(ctx context.Context, courseID string) (*Course, error)
 	UpdateCourse(ctx context.Context, course *cpb.Course) (*Course, error)
 	DeleteCourse(ctx context.Context, courseID string) error
+	GetCoursesBySemester(ctx context.Context, semester string) ([]*Course, error)
 }
 
 // StudentDBInterface defines operations related to student enrollments.
@@ -69,6 +70,7 @@ var (
 	ErrStudentIDEmpty    = errors.New("student ID is empty")
 	ErrStaffIDEmpty      = errors.New("staff ID is empty")
 	ErrAnnouncementEmpty = errors.New("announcement is empty")
+	ErrSemesterEmpty     = errors.New("semester is empty")
 )
 
 // InitializeDatabase ensures that the database exists and initializes the schema.
@@ -96,6 +98,7 @@ func createDatabaseIfNotExists() {
 	defer sqldb.Close()
 
 	ctx := context.Background()
+
 	dbName := os.Getenv("DP_NAME")
 	query := "SELECT 1 FROM pg_database WHERE datname = $1;"
 
@@ -453,6 +456,25 @@ func (d *Database) GetStaffCourses(ctx context.Context, staffID string) ([]strin
 	}
 
 	return courseIDs, nil
+}
+
+// GetCoursesBySemester retrieves all courses for a specific semester.
+func (d *Database) GetCoursesBySemester(ctx context.Context, semester string) ([]*Course, error) {
+	if semester == "" {
+		return nil, fmt.Errorf("%w", ErrSemesterEmpty)
+	}
+
+	var courses []*Course
+
+	err := d.db.NewSelect().
+		Model(&courses).
+		Where("semester = ?", semester).
+		Scan(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get courses by semester: %w", err)
+	}
+
+	return courses, nil
 }
 
 // AddAnnouncement adds an announcement to a course.

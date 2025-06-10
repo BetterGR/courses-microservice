@@ -324,6 +324,37 @@ func (s *CoursesServer) GetStaffCourses(ctx context.Context,
 	return &cpb.GetStaffCoursesResponse{CoursesIDs: courseIDs}, nil
 }
 
+// GetSemesterCourses retrieves all courses for a specific semester.
+func (s *CoursesServer) GetSemesterCourses(ctx context.Context,
+	req *cpb.GetSemesterCoursesRequest,
+) (*cpb.GetSemesterCoursesResponse, error) {
+	if err := s.VerifyToken(ctx, req.GetToken()); err != nil {
+		return nil, fmt.Errorf("authentication failed: %w",
+			status.Error(codes.Unauthenticated, err.Error()))
+	}
+
+	logger := klog.FromContext(ctx)
+	logger.V(logLevelDebug).Info("Received GetSemesterCourses request", "semester", req.GetSemester())
+
+	courses, err := s.db.GetCoursesBySemester(ctx, req.GetSemester())
+	if err != nil {
+		return nil, fmt.Errorf("failed to get courses by semester: %w", status.Error(codes.Internal, err.Error()))
+	}
+
+	// Convert database courses to proto courses
+	pbCourses := make([]*cpb.Course, len(courses))
+	for i, course := range courses {
+		pbCourses[i] = &cpb.Course{
+			CourseID:    course.CourseID,
+			CourseName:  course.CourseName,
+			Semester:    course.Semester,
+			Description: course.Description,
+		}
+	}
+
+	return &cpb.GetSemesterCoursesResponse{Courses: pbCourses}, nil
+}
+
 // AddAnnouncementToCourse adds an announcement to a course.
 func (s *CoursesServer) AddAnnouncementToCourse(ctx context.Context,
 	req *cpb.AddAnnouncementRequest,

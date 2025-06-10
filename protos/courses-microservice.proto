@@ -29,6 +29,8 @@ service CoursesService {
     rpc GetStudentCourses (GetStudentCoursesRequest) returns (GetStudentCoursesResponse);
     // Get staff's courses.
     rpc GetStaffCourses (GetStaffCoursesRequest) returns (GetStaffCoursesResponse);
+    // Get all courses in a semester.
+    rpc GetSemesterCourses (GetSemesterCoursesRequest) returns (GetSemesterCoursesResponse);
     // Add an announcement to a course.
     rpc AddAnnouncementToCourse (AddAnnouncementRequest) returns (AddAnnouncementResponse);
     // Get all announcements in a course.
@@ -166,6 +168,17 @@ message GetStaffCoursesRequest {
 // Response message for getting a staff's courses.
 message GetStaffCoursesResponse {
     repeated string coursesIDs = 1;
+}
+
+// Request message for getting all courses in a semester.
+message GetSemesterCoursesRequest {
+    string token = 1;
+    string semester = 2;
+}
+
+// Response message for getting all courses in a semester.
+message GetSemesterCoursesResponse {
+    repeated Course courses = 1;
 }
 
 // Request message for adding an announcement to a course.

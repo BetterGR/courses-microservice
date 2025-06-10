@@ -414,6 +414,24 @@ func (m *MockDatabase) GetStaffCourses(_ context.Context, staffID string) ([]str
 	return result, nil
 }
 
+func (m *MockDatabase) GetCoursesBySemester(_ context.Context, semester string) ([]*Course, error) {
+	if semester == "" {
+		return nil, fmt.Errorf("%w", ErrSemesterEmpty)
+	}
+
+	m.mutex.RLock()
+	defer m.mutex.RUnlock()
+
+	var courses []*Course
+	for _, course := range m.courses {
+		if course.Semester == semester {
+			courses = append(courses, course)
+		}
+	}
+
+	return courses, nil
+}
+
 // AddAnnouncement adds an announcement to a course in the mock database.
 func (m *MockDatabase) AddAnnouncement(_ context.Context, req *cpb.AddAnnouncementRequest) error {
 	if req.GetCourseID() == "" || req.GetAnnouncement().GetAnnouncementContent() == "" {
